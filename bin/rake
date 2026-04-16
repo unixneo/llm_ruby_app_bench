@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+APP_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+export BUNDLE_GEMFILE="$APP_ROOT/Gemfile"
+export BUNDLE_PATH="$APP_ROOT/vendor/bundle"
+export GEM_HOME="$APP_ROOT/vendor/bundle/ruby/3.2.0"
+export GEM_PATH="$GEM_HOME"
+
+exec ruby --disable-gems "$APP_ROOT/bin/rake_app" "$@"

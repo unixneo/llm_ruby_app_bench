@@ -1,0 +1,69 @@
+<% content_for :title, "TSP Attempts" %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">TSP Attempts</h1>
+    <p class="page-subtitle">Codex Ruby candidate results compared with OR-Tools gem references.</p>
+  </div>
+</div>
+
+<% if @algorithm_versions.any? %>
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">Algorithm Versions</h2>
+      <%= link_to "All attempts", attempts_path, class: "btn btn-secondary" %>
+    </div>
+
+    <div class="filter-row">
+      <% @algorithm_versions.each do |algorithm_version| %>
+        <%= link_to algorithm_version, attempts_path(algorithm_version: algorithm_version), class: "btn btn-secondary" %>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<% if @attempts.any? %>
+  <section class="attempt-grid">
+    <% @attempts.each do |attempt| %>
+      <article class="attempt-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt_path(attempt) %></h2>
+            <p class="muted-line"><%= attempt.prompt_id %> · <%= attempt.challenge.name %> · <%= attempt.algorithm_version %> · <%= attempt.reference_version %></p>
+          </div>
+          <span class="badge <%= attempt.status_badge_class %>"><%= attempt.status_label %></span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-row">
+            <div class="metric-label">Algorithm Version</div>
+            <div class="metric-value"><%= attempt.algorithm_version %></div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Reference Version</div>
+            <div class="metric-value"><%= attempt.reference_version %></div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Length Difference</div>
+            <div class="metric-value"><%= number_with_precision(attempt.difference, precision: 12, strip_insignificant_zeros: true) %></div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Status</div>
+            <div class="metric-value"><%= attempt.status_label %></div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">PI Interpretation</div>
+            <div class="metric-value"><%= attempt.interpretation&.classification&.humanize || "Pending" %></div>
+          </div>
+        </div>
+
+        <%= link_to "Review comparison", attempt_path(attempt), class: "btn btn-primary" %>
+      </article>
+    <% end %>
+  </section>
+<% else %>
+  <section class="card">
+    <h2 class="card-title">No attempts recorded</h2>
+    <p class="muted-line">Run the seeds to create P0001 TSP attempts.</p>
+  </section>
+<% end %>

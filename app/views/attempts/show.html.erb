@@ -1,0 +1,123 @@
+<% content_for :title, "#{@attempt.prompt_id} #{@attempt.fixture_name}" %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= @attempt.fixture_name %></h1>
+    <p class="page-subtitle"><%= @attempt.prompt_id %> · <%= @attempt.challenge.name %> · <%= @attempt.algorithm_version %> · <%= @attempt.reference_version %></p>
+  </div>
+  <%= link_to "Back to attempts", attempts_path, class: "btn btn-secondary" %>
+</div>
+
+<section class="card">
+  <div class="card-header">
+    <h2 class="card-title">Result Comparison</h2>
+    <span class="badge <%= @attempt.status_badge_class %>"><%= @attempt.status_label %></span>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-row">
+      <div class="metric-label">Algorithm Version</div>
+      <div class="metric-value"><%= @attempt.algorithm_version %></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-label">Reference Version</div>
+      <div class="metric-value"><%= @attempt.reference_version %></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-label">Length Difference</div>
+      <div class="metric-value"><%= number_with_precision(@attempt.difference, precision: 12, strip_insignificant_zeros: true) %></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-label">Status</div>
+      <div class="metric-value"><%= @attempt.status_label %></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-label">Reference</div>
+      <div class="metric-value"><%= @attempt.reference_result_data.fetch("source", "unknown") %></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-label">Candidate Tour</div>
+      <div class="metric-value"><code><%= @attempt.candidate_tour_display %></code></div>
+    </div>
+    <% if @attempt.status == "candidate_failed" %>
+      <div class="metric-row">
+        <div class="metric-label">Candidate Error</div>
+        <div class="metric-value"><%= @attempt.candidate_result_data.fetch("error").fetch("message") %></div>
+      </div>
+    <% end %>
+    <div class="metric-row">
+      <div class="metric-label">Gem Tour</div>
+      <div class="metric-value"><code><%= @attempt.reference_tour_display %></code></div>
+    </div>
+  </div>
+</section>
+
+<section class="comparison-grid">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Candidate Result</h2>
+      <span class="badge badge-candidate">Codex Ruby</span>
+    </div>
+    <pre class="result-json"><%= JSON.pretty_generate(@attempt.candidate_result_data) %></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Gem Reference Result</h2>
+      <span class="badge badge-reference">OR-Tools</span>
+    </div>
+    <pre class="result-json"><%= JSON.pretty_generate(@attempt.reference_result_data) %></pre>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h2 class="card-title">PI Interpretation</h2>
+  </div>
+
+  <div class="system-status-panel">
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">System Status</div>
+        <div class="metric-value">
+          <span class="badge <%= @attempt.status_badge_class %>" data-status="<%= @attempt.status %>"><%= @attempt.status_label %></span>
+          <code class="status-code"><%= @attempt.status %></code>
+        </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">PI Classification</div>
+        <div class="metric-value"><%= @attempt.interpretation&.classification&.humanize || "Pending" %></div>
+      </div>
+    </div>
+  </div>
+
+  <% if @attempt.interpretation&.persisted? %>
+    <p><span class="badge badge-other"><%= @attempt.interpretation.classification.humanize %></span></p>
+    <div class="notes-body"><%= simple_format(@attempt.interpretation.notes) %></div>
+  <% else %>
+    <%= form_with(model: [@attempt, @interpretation], class: "interpretation-form") do |form| %>
+      <% if @interpretation.errors.any? %>
+        <div class="flash flash-alert">
+          <h3>Could not record interpretation</h3>
+          <ul>
+            <% @interpretation.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-field">
+        <%= form.label :classification %>
+        <%= form.select :classification, Interpretation::CLASSIFICATIONS.map { |value| [value.humanize, value] }, { prompt: "Choose PI classification" } %>
+      </div>
+
+      <div class="form-field">
+        <%= form.label :notes %>
+        <%= form.text_area :notes, rows: 6 %>
+      </div>
+
+      <%= form.submit "Record interpretation", class: "btn btn-primary" %>
+    <% end %>
+  <% end %>
+</section>

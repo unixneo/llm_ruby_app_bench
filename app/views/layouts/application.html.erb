@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Llm Ruby App Bench" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <header class="app-header">
+      <div class="app-header-inner">
+        <div>
+          <%= link_to root_path, class: "logo" do %>
+            <span class="logo-mark">LLM</span>
+            <span class="logo-text">Ruby Algorithm Benchmark</span>
+          <% end %>
+          <p class="logo-sub">Candidate Ruby versus gem references</p>
+        </div>
+        <nav class="top-nav">
+          <%= link_to "Attempts", attempts_path, class: "nav-link #{'active' if current_page?(attempts_path) || current_page?(root_path)}" %>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main">
+      <% flash.each do |type, message| %>
+        <% flash_class = type.to_s == "notice" ? "flash-notice" : "flash-alert" %>
+        <div class="flash <%= flash_class %>"><%= message %></div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>
