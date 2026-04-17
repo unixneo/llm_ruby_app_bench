@@ -1624,3 +1624,151 @@ end
 
 Skipping Held-Karp tests should reduce test suite time significantly (exact speedup to be measured in R0019).
 
+
+
+---
+
+## P0020 - Knapsack Problem: 0/1 Dynamic Programming Implementation
+
+**Target:** Implement exact 0/1 Knapsack solver using dynamic programming and compare against `knapsack` gem reference.
+
+**Problem Definition:**
+
+Given:
+- Knapsack capacity (integer weight limit)
+- N items, each with weight and value (both integers)
+
+Find: Maximum total value achievable without exceeding capacity, where each item can be taken once (0) or not at all (1).
+
+**Constraints:**
+
+- Pure Ruby implementation in `llm_ruby_app_bench` Rails app
+- SQLite3 for storage
+- No external knapsack gems/libraries in candidate implementation
+- Support fixtures with n≤20 items (reasonable for DP table size)
+- Reference comparison: `knapsack` gem (verified available v4.0.0)
+
+**Scope:**
+
+1. **Data model:**
+   - Reuse existing `Challenge` model
+   - Create `KnapsackFixtures` class (similar to `TspFixtures`)
+   - Reuse `Attempt` model with knapsack-specific fields
+   - Store: capacity, items array [{weight, value}], optimal value, selected items
+
+2. **Knapsack problem representation:**
+   - `KnapsackProblem` class with capacity and items
+   - Item representation: simple hash or struct with weight/value
+   - Validation: all weights and values must be positive integers
+
+3. **Candidate solver:**
+   - Pure Ruby 0/1 knapsack implementation using dynamic programming
+   - Classic DP table approach: dp[i][w] = max value using first i items with weight limit w
+   - Input: KnapsackProblem instance
+   - Output: { max_value: Integer, selected_items: Array<Integer> }
+   - Algorithm: bottom-up DP with backtracking to find selected items
+
+4. **Reference comparison:**
+   - Use `knapsack` gem as reference implementation
+   - Install gem: `gem install knapsack` or add to Gemfile
+   - Run both candidate and reference on same fixtures
+   - Store both results in Attempt record
+   - Compare max_value (must match exactly for correctness)
+
+5. **Fixtures:**
+   - Create 5 known knapsack fixtures:
+     * Small (n=4): capacity=10, verify by hand
+     * Medium (n=8): capacity=50
+     * Classic (n=10): well-known benchmark from literature
+     * Tight capacity (n=10): capacity forces difficult choices
+     * Larger (n=20): stress test DP table size
+   - Store fixtures as seeds or in KnapsackFixtures class
+   - At least one fixture with known optimal value from literature
+
+6. **Test coverage:**
+   - Test candidate returns integer max_value
+   - Test candidate returns valid item selection (weights sum ≤ capacity)
+   - Test candidate matches reference on all fixtures
+   - Test edge cases: capacity=0, single item, all items too heavy
+   - Test DP correctness: changing one item value changes result appropriately
+
+7. **Database schema:**
+   - Create `knapsack_attempts` or extend attempts table
+   - Fields: fixture_name, capacity, items_json, candidate_max_value, reference_max_value
+   - candidate_selected_items, reference_selected_items (JSON arrays)
+   - status: 'pass' (values match), 'fail' (mismatch)
+
+8. **Web interface (minimal):**
+   - Add Knapsack to challenges index (already has placeholder)
+   - Page listing knapsack attempts with fixture, capacity, results
+   - Show candidate vs reference max_value
+   - Highlight mismatches
+   - Link to Attempt detail view
+
+**Success criteria:**
+
+- Candidate DP solver returns correct max_value for all fixtures
+- Candidate matches `knapsack` gem reference exactly
+- Tests verify DP algorithm correctness
+- Database stores both candidate and reference results
+- UI displays knapsack attempts similar to TSP attempts
+
+**Out of scope for P0020:**
+
+- Heuristic solvers (greedy, approximation)
+- Fractional knapsack variant
+- Unbounded knapsack variant
+- Multiple knapsacks
+- Branch-and-bound solver
+- Optimization for large n (>100 items)
+
+**Example fixture (small):**
+
+```ruby
+{
+  capacity: 10,
+  items: [
+    { weight: 3, value: 40 },
+    { weight: 4, value: 50 },
+    { weight: 5, value: 60 },
+    { weight: 2, value: 20 }
+  ],
+  known_optimal: 110  # items[1] + items[2] = 50 + 60
+}
+```
+
+**Reference gem verification:**
+
+Before implementation, verify `knapsack` gem API:
+
+```ruby
+require 'knapsack'
+# Test basic usage to understand gem interface
+# Document API in prompt or separate investigation
+```
+
+**Deliverables:**
+
+- `app/models/knapsack_problem.rb` - problem representation
+- `app/services/knapsack_solver.rb` - DP implementation
+- `app/services/knapsack_fixtures.rb` - fixture definitions
+- `db/migrate/XXX_add_knapsack_fields.rb` - schema changes if needed
+- Tests for solver correctness and reference comparison
+- Updated challenges controller to include Knapsack
+- R0020 documenting:
+  - DP algorithm verification
+  - Reference gem usage
+  - All fixtures passing
+  - Any interesting findings or edge cases
+
+**Research focus:**
+
+The goal is to test LLM behavior on:
+- Classic DP algorithm implementation
+- Correctness of backtracking (finding which items)
+- Handling edge cases (capacity 0, no items fit)
+- Matching reference implementation exactly
+
+**Important note:**
+
+This is P0020, the first knapsack prompt. Like TSP, there will likely be follow-up prompts for different approaches, fixtures, or corrections based on findings.
