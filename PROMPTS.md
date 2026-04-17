@@ -233,3 +233,41 @@ Test LLM behavior on:
 - Comparing heuristic vs optimization results
 
 **Important:** This is P0020 (VRP), superseding the blocked knapsack prompt. CLE0010 documents the insufficient gem verification error.
+
+
+**PI APPROVAL (C001 Compliance):**
+
+**Date:** 2026-04-17  
+**Decision:** Option A - Clarke-Wright Savings Algorithm
+
+**Rationale:**
+- Best quality solutions among the three options
+- Well-established classical heuristic (1964)
+- Appropriate complexity for benchmarking LLM implementation
+- Moderate implementation difficulty (priority queue, route merging)
+
+**Algorithm Overview:**
+
+Clarke-Wright Savings Algorithm:
+1. Start with each customer on separate route (depot → customer → depot)
+2. Calculate savings for merging each pair: savings(i,j) = d(depot,i) + d(depot,j) - d(i,j)
+3. Sort pairs by savings (highest first)
+4. Merge routes greedily while respecting capacity constraints
+5. Result: Routes with customers merged by highest savings
+
+**Implementation Requirements:**
+
+- Calculate all pairwise savings
+- Sort by savings (descending)
+- Merge algorithm respecting:
+  * Vehicle capacity constraints
+  * Route feasibility (customers can only be in one route)
+  * Depot start/end requirements
+
+**Expected Behavior:**
+
+Good solutions for VRP, though not guaranteed optimal. OR-Tools reference will likely find better (or equal) solutions using optimization rather than heuristic construction.
+
+**Approved for implementation in P0020.**
+
+---
