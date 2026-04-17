@@ -28,7 +28,8 @@
           <p class="logo-sub">Candidate Ruby versus gem references</p>
         </div>
         <nav class="top-nav">
-          <%= link_to "Attempts", attempts_path, class: "nav-link #{'active' if current_page?(attempts_path) || current_page?(root_path)}" %>
+          <%= link_to "Algorithms", root_path, class: "nav-link #{'active' if controller_name == 'challenges'}" %>
+          <%= link_to "TSP Attempts", attempts_path, class: "nav-link #{'active' if controller_name == 'attempts'}" %>
         </nav>
       </div>
     </header>

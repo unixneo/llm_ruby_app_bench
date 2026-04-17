@@ -109,3 +109,121 @@ The experiment assumed OR-Tools was providing optimal "ground truth" solutions, 
 P0015 will reconfigure OR-Tools to use exact optimization. After correction, both exact solvers should produce similar optimal tour lengths (though possibly different tour sequences).
 
 **Classification:** Codex implementation error - selected heuristic algorithm without verifying it was appropriate for reference solver role.
+
+---
+
+## CE0008 - CE0001 Recurrence: Unnecessary PATH Prefix in R0016
+
+**Date:** 2026-04-17  
+**Prompt:** P0016  
+**Error Type:** Codex implementation error - regression to workaround pattern already corrected in P0005
+
+**What happened:**
+
+In R0016, Codex used the PATH prefix workaround pattern from P0002/P0004:
+
+```bash
+PATH=/Users/timbass/.rbenv/shims:/Users/timbass/.rbenv/bin:$PATH bin/rails test test/controllers/...
+```
+
+This is the same unnecessary PATH manipulation that was identified as CE0001 and corrected in P0005.
+
+**Evidence:**
+
+Testing confirms the PATH prefix is completely unnecessary:
+
+```bash
+# Works perfectly without PATH prefix:
+$ bin/rails test
+36 runs, 415 assertions, 0 failures, 0 errors, 0 skips
+✅ Exit code 0
+```
+
+**Why this is a recurrence:**
+
+1. **P0005 already fixed this** - Claude corrected the Bundler environment to use standard Rails conventions
+2. **All other Rails projects use plain `bin/rails test`** - rh_llm_benchmark, mkmu, etc.
+3. **Rails binstubs handle rbenv automatically** - the PATH prefix adds no value
+4. **This is the exact workaround pattern documented in CE0001**
+
+**What Codex should have done:**
+
+1. Review recent results (R0005 onwards) showing the correct pattern: plain `bin/rails test`
+2. Use standard Rails binstub commands without PATH manipulation
+3. Trust that P0005's correction resolved the underlying environment issue
+
+**Root cause:**
+
+Codex either:
+- Didn't review recent results and copy-pasted from old results (R0002-R0004)
+- Failed to recognize the pattern was already corrected
+- Reverted to workaround habit without checking current project state
+
+**Impact:**
+
+- Perpetuates incorrect workaround pattern in documentation
+- Suggests the P0005 fix didn't work (when it did)
+- Creates confusion about correct Rails command usage
+- Pollutes RESULTS.md with obsolete workaround syntax
+
+**Classification:** Codex implementation error - regression to previously-corrected workaround pattern, failure to maintain project consistency across prompts.
+
+---
+
+## CE0007 - Unauthorized Root Route Design (TSP-Specific)
+
+**Date:** 2026-04-16  
+**Prompt:** P0001  
+**Error Type:** Codex implementation error - unauthorized design decision violating multi-algorithm intent
+
+**What happened:**
+
+Codex set `root "attempts#index"` in `config/routes.rb`, hardcoding TSP attempts as the application root route. This creates tight coupling between the root route and TSP, making it harder to add other algorithm families later.
+
+**Evidence:**
+
+```ruby
+# config/routes.rb
+root "attempts#index"
+
+resources :attempts, only: [:index, :show] do
+  resources :interpretations, only: [:create]
+end
+```
+
+**Why this is an error:**
+
+PLAN.md clearly states this is a **multi-algorithm benchmark**:
+- "The algorithms are the test cases" (line 11)
+- Goal is to document "LLM errors while implementing difficult engineering/math algorithms" (plural)
+- TSP is just the first case study, not the only one
+
+**P0001 specification:**
+
+```
+7. Web interface (minimal):
+   - Page listing all attempts
+   - Page showing single attempt: prompt_id, fixture, candidate result, reference result, difference
+   - Form for PI to add interpretation classification and notes
+```
+
+P0001 requested generic "pages" without specifying root routing or implying TSP should be the application root.
+
+**What Codex should have done:**
+
+1. Recognize from PLAN.md that this is multi-algorithm benchmark
+2. Either:
+   - Create generic root (e.g., `root "challenges#index"` listing all algorithm types)
+   - Ask PI which route should be root
+   - Leave root unset until PI specifies
+3. Make TSP attempts accessible via namespaced route (e.g., `/tsp/attempts`)
+
+**Impact:**
+
+- **Architectural coupling:** Root route now hardcoded to TSP
+- **Scalability problem:** Adding Knapsack, Graph Coloring, or other algorithms requires refactoring root route
+- **Violates intent:** PLAN.md envisioned algorithm-agnostic framework, not TSP-specific app
+
+**Classification:** Codex implementation error - made architectural design decision (which algorithm owns root route) without authorization, violating multi-algorithm intent from PLAN.md.
+
+**Severity:** Major (not critical) - creates technical debt and tight coupling, but doesn't break functionality or produce wrong results.

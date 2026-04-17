@@ -9,9 +9,13 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
-  root "attempts#index"
+  root "challenges#index"
 
-  resources :attempts, only: [:index, :show] do
-    resources :interpretations, only: [:create]
+  resources :challenges, only: [:index, :show]
+
+  scope :tsp do
+    resources :attempts, only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
   end
 end

@@ -155,6 +155,40 @@ a:hover {
   gap: 1rem;
 }
 
+.algorithm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.overview-card {
+  background: var(--panel-strong);
+}
+
+.algorithm-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+}
+
+.algorithm-card-disabled {
+  opacity: 0.62;
+}
+
+.insight-line {
+  margin: 1rem 0 0;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .filter-row {
   display: flex;
   flex-wrap: wrap;

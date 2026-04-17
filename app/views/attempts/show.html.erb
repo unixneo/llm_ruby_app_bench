@@ -5,7 +5,10 @@
     <h1 class="page-title"><%= @attempt.fixture_name %></h1>
     <p class="page-subtitle"><%= @attempt.prompt_id %> · <%= @attempt.challenge.name %> · <%= @attempt.algorithm_version %> · <%= @attempt.reference_version %></p>
   </div>
-  <%= link_to "Back to attempts", attempts_path, class: "btn btn-secondary" %>
+  <div class="page-actions">
+    <%= link_to "Algorithms", root_path, class: "btn btn-secondary" %>
+    <%= link_to "Back to attempts", attempts_path, class: "btn btn-secondary" %>
+  </div>
 </div>
 
 <section class="card">

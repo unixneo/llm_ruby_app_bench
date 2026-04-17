@@ -1232,3 +1232,213 @@ assignment = routing.solve(first_solution_strategy: :path_cheapest_arc)
   - Whether CE0006 finding was configuration error or Held-Karp superiority
 
 **Note:** This resolves the "ground truth" question - if OR-Tools was just misconfigured, both exact solvers should agree. If OR-Tools still produces worse results even with exact configuration, then Held-Karp is genuinely more accurate.
+
+---
+
+## P0016 - Fix Root Route and Create Algorithm-Agnostic Index
+
+**Target:** Replace TSP-specific root route with algorithm-agnostic index page displaying cards for each algorithm family.
+
+**Problem (from CE0007):**
+
+Current `config/routes.rb` hardcodes `root "attempts#index"` which creates tight coupling to TSP. PLAN.md clearly indicates this is a multi-algorithm benchmark ("The algorithms are the test cases"), but the root route violates this intent.
+
+**Constraints:**
+
+- Standard Rails patterns
+- SQLite3 only
+- Preserve all existing TSP functionality
+- Do NOT modify models, services, or TSP-specific logic
+- Update only: routes, controllers, views
+- No JavaScript frameworks
+
+**Scope:**
+
+1. **Create ChallengesController:**
+   - Index action listing all algorithm families (challenges)
+   - Show action redirecting to algorithm-specific attempts index
+
+2. **Update routes.rb:**
+   - Change root from `root "attempts#index"` to `root "challenges#index"`
+   - Namespace TSP routes under `/tsp` or similar
+   - Preserve existing attempts and interpretations routes
+
+3. **Create challenges#index view:**
+   - Top card: Project overview describing the multi-algorithm benchmark goal
+     - Title: "LLM Ruby Algorithm Error Benchmark"
+     - Description: Brief explanation from PLAN.md about documenting LLM errors in research-oriented algorithm implementation
+     - Key insight: "Passing tests ≠ research correctness"
+   
+   - Algorithm cards (one per challenge type):
+     - Card for "Traveling Salesman Problem"
+       - Brief description
+       - Stats: number of fixtures, algorithms tested, attempts count
+       - Link to TSP attempts index
+     - Placeholder cards for future algorithms (Knapsack, Graph Coloring, etc.)
+       - Grayed out or "Coming Soon" state
+       - Shows multi-algorithm intent
+
+4. **Styling:**
+   - Match existing dark theme (#1a1a1a background, #2a2a2a cards)
+   - Card-based layout like existing attempts index
+   - Responsive grid (1-2 columns depending on screen size)
+   - Clear visual hierarchy: overview card prominent, algorithm cards below
+
+5. **Update existing attempts views:**
+   - Add breadcrumb or back link to challenges index
+   - Keep all existing functionality intact
+
+**Example route structure:**
+
+```ruby
+root "challenges#index"
+
+resources :challenges, only: [:index, :show]
+
+scope :tsp do
+  resources :attempts, only: [:index, :show] do
+    resources :interpretations, only: [:create]
+  end
+end
+```
+
+Or alternatively:
+
+```ruby
+root "challenges#index"
+
+resources :challenges, only: [:index, :show] do
+  resources :attempts, only: [:index, :show] do
+    resources :interpretations, only: [:create]
+  end
+end
+```
+
+**Top card content (example):**
+
+```
+Title: LLM Ruby Algorithm Error Benchmark
+
+Description:
+A human-in-the-loop framework for evaluating LLM collaborators in research-oriented 
+software development. This project documents how LLMs handle algorithmic research 
+decisions, specification ambiguity, and verification using a three-role architecture: 
+PI (human), Architect (Claude), and Coder (Codex).
+
+Key Finding: Passing tests ≠ research correctness. A system can be locally correct 
+while answering the wrong question.
+```
+
+**Algorithm card content (example for TSP):**
+
+```
+Traveling Salesman Problem
+- 7 fixtures (symmetric, random, real-world)
+- 3 algorithms tested (brute-force, nearest-neighbor, Held-Karp)
+- XX total attempts
+- Status: Complete
+
+[View Attempts →]
+```
+
+**Success criteria:**
+
+- Root route points to challenges#index
+- Challenges index renders with project overview card + algorithm cards
+- TSP card displays correct stats from database
+- Clicking TSP card navigates to TSP attempts index
+- All existing TSP functionality preserved (no broken links)
+- Tests pass
+- Dark theme styling consistent with existing UI
+
+**Out of scope for P0016:**
+
+- Adding actual new algorithms (Knapsack, Graph Coloring)
+- Modifying TSP models or services
+- Adding filtering or search to challenges index
+- Export functionality
+
+**Deliverables:**
+
+- ChallengesController with index action
+- app/views/challenges/index.html.erb with overview + algorithm cards
+- Updated config/routes.rb with challenges root
+- Updated attempts views with navigation back to challenges
+- Tests for ChallengesController
+- R0016 documenting:
+  - Route changes made
+  - How algorithm cards display stats
+  - Navigation flow (root → challenges → algorithm attempts)
+  - How this fixes CE0007
+
+**Note:** This resolves CE0007 by removing TSP-specific coupling from root route and establishing proper multi-algorithm architecture.
+
+---
+
+## P0017 - Fix Unnecessary PATH Prefix in Test Commands
+
+**Target:** Remove unnecessary PATH prefix workaround from R0016 and establish correct Rails command pattern.
+
+**Problem (from CE0008):**
+
+R0016 used the PATH prefix workaround:
+```bash
+PATH=/Users/timbass/.rbenv/shims:/Users/timbass/.rbenv/bin:$PATH bin/rails test
+```
+
+This is a regression to the CE0001 pattern that was already corrected in P0005. Testing confirms the PATH prefix is completely unnecessary - plain `bin/rails test` works perfectly.
+
+**Constraints:**
+
+- Standard Rails patterns only
+- No PATH manipulation
+- No shell wrappers
+- Match patterns from rh_llm_benchmark, mkmu, and other Rails projects in `/Users/timbass/rails/`
+
+**Scope:**
+
+1. **Update R0016 in RESULTS.md:**
+   - Replace all instances of `PATH=/Users/timbass/.rbenv/shims:/Users/timbass/.rbenv/bin:$PATH bin/rails test` with plain `bin/rails test`
+   - Keep all other content identical
+   - Preserve actual test results and output
+
+2. **Verify correct pattern:**
+   - Run `bin/rails test` to confirm it works
+   - Document that plain command succeeds
+   - No PATH prefix needed
+
+**Success criteria:**
+
+- R0016 shows correct Rails command pattern: `bin/rails test`
+- No PATH environment variable manipulation
+- Test results remain unchanged
+- Pattern matches other Rails projects
+
+**Out of scope for P0017:**
+
+- Modifying any code or functionality
+- Running new tests
+- Changing anything except command syntax in R0016
+
+**Deliverables:**
+
+- Updated R0016 with correct `bin/rails test` commands
+- R0017 documenting:
+  - What was changed in R0016
+  - Verification that plain `bin/rails test` works
+  - Reference to CE0008 as the error being corrected
+  - Note that this pattern should be used in all future results
+
+**Important note:**
+
+From P0017 forward, all Rails commands in RESULTS.md should use standard binstubs without PATH manipulation:
+
+✅ Correct: `bin/rails test`  
+✅ Correct: `bin/rails db:migrate`  
+✅ Correct: `bin/rails db:seed`  
+
+❌ Wrong: `PATH=... bin/rails test`  
+❌ Wrong: `bundle exec rails test`  
+❌ Wrong: Custom wrapper scripts  
+
+This is the standard Rails pattern used in all other projects in `/Users/timbass/rails/`.

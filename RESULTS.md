@@ -1204,3 +1204,173 @@ Output:
 
 - OR-Tools TSP guide: https://developers.google.com/optimization/routing/tsp
 - OR-Tools routing options: https://developers.google.com/optimization/routing/routing_options
+
+---
+
+## R0016 - P0016 Algorithm-Agnostic Root Page
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+P0016 corrected the TSP-specific root route described in CE0007. The application now opens on an algorithm-agnostic challenge index instead of sending users directly to TSP attempts.
+
+### Route Changes
+
+Root route changed from:
+
+```ruby
+root "attempts#index"
+```
+
+to:
+
+```ruby
+root "challenges#index"
+```
+
+Challenge routes were added:
+
+```ruby
+resources :challenges, only: [:index, :show]
+```
+
+TSP attempts were moved under a `/tsp` path while preserving existing route helper names:
+
+```ruby
+scope :tsp do
+  resources :attempts, only: [:index, :show] do
+    resources :interpretations, only: [:create]
+  end
+end
+```
+
+This keeps existing helpers such as `attempts_path`, `attempt_url`, and `attempt_interpretations_url` working while changing the actual attempts index path to:
+
+```text
+/tsp/attempts
+```
+
+### Challenge Index
+
+Added `ChallengesController#index` and `app/views/challenges/index.html.erb`.
+
+The root page now includes:
+
+- project overview card
+- key research warning: `Passing tests != research correctness`
+- active Traveling Salesman Problem card
+- placeholder cards for Knapsack, Graph Coloring, and Shortest Path Algorithms
+
+The TSP card displays live stats:
+
+```text
+fixtures: TspFixtures.all.count
+algorithms: Attempt.distinct.count(:algorithm_version)
+attempts: Attempt.count
+```
+
+The TSP card links through `ChallengesController#show`, which redirects the Traveling Salesman Problem challenge to the TSP attempts index.
+
+### Navigation Updates
+
+The global navigation now has:
+
+```text
+Algorithms
+TSP Attempts
+```
+
+The attempts index includes a back link to the algorithm index. The attempt detail page includes links back to both the algorithm index and the attempts index.
+
+### CE0007 Resolution
+
+CE0007 identified that Codex made an unauthorized architectural decision by making TSP own the application root route. P0016 removes that coupling:
+
+- root is now algorithm-agnostic
+- TSP is one algorithm family under `/tsp`
+- future algorithms can be added as new challenge cards without redefining the application root
+
+### Verification
+
+Targeted controller tests:
+
+```bash
+bin/rails test test/controllers/challenges_controller_test.rb test/controllers/attempts_controller_test.rb test/controllers/interpretations_controller_test.rb
+```
+
+Output:
+
+```text
+10 runs, 88 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Full test suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+36 runs, 415 assertions, 0 failures, 0 errors, 0 skips
+```
+
+### Environment Note
+
+The shell still emits stale native-extension warnings from older gem paths, but the standard Rails binstub commands pass without PATH manipulation.
+
+---
+
+## R0017 - P0017 Correct Rails Command Pattern
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+P0017 corrected the unnecessary PATH prefix introduced in R0016. That prefix repeated the CE0001 workaround pattern and was not needed for this Rails app.
+
+### R0016 Update
+
+R0016 now documents standard Rails binstub commands:
+
+```bash
+bin/rails test test/controllers/challenges_controller_test.rb test/controllers/attempts_controller_test.rb test/controllers/interpretations_controller_test.rb
+```
+
+and:
+
+```bash
+bin/rails test
+```
+
+No PATH environment manipulation remains in the R0016 verification commands.
+
+### CE0008 Correction
+
+CE0008 identified that R0016 prepended rbenv PATH entries to Rails test commands. That was unnecessary and inconsistent with the standard Rails pattern restored after CE0001.
+
+Future results should use plain Rails binstubs:
+
+```bash
+bin/rails test
+bin/rails db:migrate
+bin/rails db:seed
+```
+
+### Verification
+
+Plain command:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+36 runs, 415 assertions, 0 failures, 0 errors, 0 skips
+```

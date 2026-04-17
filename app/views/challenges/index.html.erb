@@ -1,0 +1,82 @@
+<% content_for :title, "Algorithm Challenges" %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">LLM Ruby Algorithm Error Benchmark</h1>
+    <p class="page-subtitle">Human-in-the-loop evaluation of LLM collaborators in research-oriented Ruby algorithm implementation.</p>
+  </div>
+</div>
+
+<section class="card overview-card">
+  <div class="card-header">
+    <h2 class="card-title">Project Overview</h2>
+    <span class="badge badge-reference">Research Framework</span>
+  </div>
+
+  <p>
+    This project documents how LLM collaborators handle algorithmic research decisions,
+    specification ambiguity, verification, and role boundaries in a PI, Architect, and Coder workflow.
+  </p>
+
+  <p class="insight-line">Passing tests != research correctness.</p>
+</section>
+
+<section class="algorithm-grid">
+  <article class="algorithm-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Traveling Salesman Problem</h2>
+        <p class="muted-line">Exact, heuristic, and gem-reference comparisons over synthetic and real-world fixtures.</p>
+      </div>
+      <span class="badge badge-pass">Active</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">Fixtures</div>
+        <div class="metric-value"><%= pluralize(@tsp_stats.fetch(:fixture_count), "fixture") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Algorithms</div>
+        <div class="metric-value"><%= pluralize(@tsp_stats.fetch(:algorithm_count), "algorithm") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value"><%= pluralize(@tsp_stats.fetch(:attempt_count), "attempt") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Status</div>
+        <div class="metric-value">Complete</div>
+      </div>
+    </div>
+
+    <%= link_to "View Attempts", @tsp_challenge ? challenge_path(@tsp_challenge) : attempts_path, class: "btn btn-primary" %>
+  </article>
+
+  <% @future_challenges.each do |challenge| %>
+    <article class="algorithm-card algorithm-card-disabled">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><%= challenge.fetch(:name) %></h2>
+          <p class="muted-line"><%= challenge.fetch(:description) %></p>
+        </div>
+        <span class="badge badge-other"><%= challenge.fetch(:status) %></span>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric-row">
+          <div class="metric-label">Fixtures</div>
+          <div class="metric-value">Pending</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Algorithms</div>
+          <div class="metric-value">Pending</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Attempts</div>
+          <div class="metric-value">0 attempts</div>
+        </div>
+      </div>
+    </article>
+  <% end %>
+</section>
