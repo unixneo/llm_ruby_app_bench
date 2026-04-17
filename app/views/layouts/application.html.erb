@@ -29,7 +29,8 @@
         </div>
         <nav class="top-nav">
           <%= link_to "Algorithms", root_path, class: "nav-link #{'active' if controller_name == 'challenges'}" %>
-          <%= link_to "TSP Attempts", attempts_path, class: "nav-link #{'active' if controller_name == 'attempts'}" %>
+          <%= link_to "TSP Attempts", attempts_path, class: "nav-link #{'active' if controller_name == 'attempts' && params[:challenge_name] != 'Vehicle Routing Problem'}" %>
+          <%= link_to "VRP Attempts", vrp_attempts_path, class: "nav-link #{'active' if controller_name == 'attempts' && params[:challenge_name] == 'Vehicle Routing Problem'}" %>
         </nav>
       </div>
     </header>

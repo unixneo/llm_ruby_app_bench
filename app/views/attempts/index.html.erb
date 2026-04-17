@@ -1,8 +1,10 @@
-<% content_for :title, "TSP Attempts" %>
+<% page_title = @challenge&.name == "Vehicle Routing Problem" ? "VRP Attempts" : "TSP Attempts" %>
+<% attempts_path_for_scope = @challenge&.name == "Vehicle Routing Problem" ? vrp_attempts_path : attempts_path %>
+<% content_for :title, page_title %>
 
 <div class="page-header">
   <div>
-    <h1 class="page-title">TSP Attempts</h1>
+    <h1 class="page-title"><%= page_title %></h1>
     <p class="page-subtitle">Codex Ruby candidate results compared with OR-Tools gem references.</p>
   </div>
   <%= link_to "Back to algorithms", root_path, class: "btn btn-secondary" %>
@@ -12,12 +14,12 @@
   <section class="card">
     <div class="card-header">
       <h2 class="card-title">Algorithm Versions</h2>
-      <%= link_to "All attempts", attempts_path, class: "btn btn-secondary" %>
+      <%= link_to "All attempts", attempts_path_for_scope, class: "btn btn-secondary" %>
     </div>
 
     <div class="filter-row">
       <% @algorithm_versions.each do |algorithm_version| %>
-        <%= link_to algorithm_version, attempts_path(algorithm_version: algorithm_version), class: "btn btn-secondary" %>
+        <%= link_to algorithm_version, "#{attempts_path_for_scope}?algorithm_version=#{ERB::Util.url_encode(algorithm_version)}", class: "btn btn-secondary" %>
       <% end %>
     </div>
   </section>
@@ -29,7 +31,7 @@
       <article class="attempt-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt_path(attempt) %></h2>
+            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : attempt_path(attempt) %></h2>
             <p class="muted-line"><%= attempt.prompt_id %> · <%= attempt.challenge.name %> · <%= attempt.algorithm_version %> · <%= attempt.reference_version %></p>
           </div>
           <span class="badge <%= attempt.status_badge_class %>"><%= attempt.status_label %></span>
@@ -45,7 +47,7 @@
             <div class="metric-value"><%= attempt.reference_version %></div>
           </div>
           <div class="metric-row">
-            <div class="metric-label">Length Difference</div>
+            <div class="metric-label"><%= attempt.distance_difference_label %></div>
             <div class="metric-value"><%= number_with_precision(attempt.difference, precision: 12, strip_insignificant_zeros: true) %></div>
           </div>
           <div class="metric-row">
@@ -58,13 +60,13 @@
           </div>
         </div>
 
-        <%= link_to "Review comparison", attempt_path(attempt), class: "btn btn-primary" %>
+        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : attempt_path(attempt), class: "btn btn-primary" %>
       </article>
     <% end %>
   </section>
 <% else %>
   <section class="card">
     <h2 class="card-title">No attempts recorded</h2>
-    <p class="muted-line">Run the seeds to create P0001 TSP attempts.</p>
+    <p class="muted-line">Run the seeds to create attempt records.</p>
   </section>
 <% end %>

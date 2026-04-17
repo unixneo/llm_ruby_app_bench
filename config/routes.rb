@@ -18,4 +18,10 @@ Rails.application.routes.draw do
       resources :interpretations, only: [:create]
     end
   end
+
+  scope :vrp, as: :vrp, defaults: { challenge_name: "Vehicle Routing Problem" } do
+    resources :attempts, controller: "attempts", only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
+  end
 end

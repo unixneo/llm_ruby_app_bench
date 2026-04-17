@@ -1,4 +1,5 @@
 <% content_for :title, "#{@attempt.prompt_id} #{@attempt.fixture_name}" %>
+<% back_to_attempts_path = @attempt.route_path_name == :vrp ? vrp_attempts_path : attempts_path %>
 
 <div class="page-header">
   <div>
@@ -7,7 +8,7 @@
   </div>
   <div class="page-actions">
     <%= link_to "Algorithms", root_path, class: "btn btn-secondary" %>
-    <%= link_to "Back to attempts", attempts_path, class: "btn btn-secondary" %>
+    <%= link_to "Back to attempts", back_to_attempts_path, class: "btn btn-secondary" %>
   </div>
 </div>
 
@@ -27,7 +28,7 @@
       <div class="metric-value"><%= @attempt.reference_version %></div>
     </div>
     <div class="metric-row">
-      <div class="metric-label">Length Difference</div>
+      <div class="metric-label"><%= @attempt.distance_difference_label %></div>
       <div class="metric-value"><%= number_with_precision(@attempt.difference, precision: 12, strip_insignificant_zeros: true) %></div>
     </div>
     <div class="metric-row">
@@ -39,7 +40,7 @@
       <div class="metric-value"><%= @attempt.reference_result_data.fetch("source", "unknown") %></div>
     </div>
     <div class="metric-row">
-      <div class="metric-label">Candidate Tour</div>
+      <div class="metric-label"><%= @attempt.candidate_route_label %></div>
       <div class="metric-value"><code><%= @attempt.candidate_tour_display %></code></div>
     </div>
     <% if @attempt.status == "candidate_failed" %>
@@ -49,7 +50,7 @@
       </div>
     <% end %>
     <div class="metric-row">
-      <div class="metric-label">Gem Tour</div>
+      <div class="metric-label"><%= @attempt.reference_route_label %></div>
       <div class="metric-value"><code><%= @attempt.reference_tour_display %></code></div>
     </div>
   </div>

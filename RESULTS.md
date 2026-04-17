@@ -1641,3 +1641,122 @@ P0020 needs an architect correction before implementation:
 - identify a real Ruby 0/1 knapsack algorithm reference gem, or
 - approve a different validation approach, such as manual exact fixtures plus independent implementation review, or
 - select a different algorithm family with a verified reference implementation.
+
+### Supersession Note
+
+This blocked knapsack prompt was superseded by the corrected P0020 VRP prompt below.
+
+---
+
+## R0020 - P0020 Vehicle Routing Problem Implementation
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented the corrected P0020 scope as a Vehicle Routing Problem benchmark.
+
+Implemented:
+
+- `VrpProblem` representation with vehicle count, capacity, depot, demands, and distance matrix validation
+- `VrpFixtures` with five deterministic CVRP fixtures
+- `VrpSolver` candidate using the PI-approved Clarke-Wright savings algorithm
+- `GemVrpSolver` OR-Tools RoutingModel reference with capacity dimension
+- `VrpSolutionValidator` for route and capacity feasibility checks
+- `VrpResultComparison` for feasibility status and distance gap
+- `VrpAttemptRunner` to persist versioned `Attempt` records
+- `/vrp/attempts` routes using the existing attempts UI
+- VRP challenge card on the algorithm index
+- generic attempt display labels for TSP tours vs VRP vehicle routes
+- tests for candidate feasibility, OR-Tools feasibility, runner persistence, challenge routing, and VRP attempt display
+
+No new database table was added. The existing `Attempt` model stores VRP result JSON alongside TSP attempts, keyed by challenge, algorithm version, and reference version.
+
+### Algorithm Approval
+
+P0020 documents PI approval for:
+
+```text
+Option A - Clarke-Wright Savings Algorithm
+```
+
+Candidate source/version:
+
+```text
+clarke-wright-savings
+clarke-wright-savings-v1
+```
+
+Reference version:
+
+```text
+or-tools-routing-cvrp-guided-local-search-v1
+```
+
+### Seeded Results
+
+After seeding, five VRP attempts were recorded:
+
+```text
+fixture | status | candidate loads | candidate distance | OR-Tools distance | difference
+vrp_asymmetric_10 | feasible | [17, 17, 11] | 69.515 | 67.045 | 2.47
+vrp_larger_20 | feasible | [22, 23, 20, 20, 19] | 155.58599999999998 | 146.543 | 9.043
+vrp_small_5 | feasible | [12, 15] | 59.0 | 59.0 | 0.0
+vrp_symmetric_8 | feasible | [18, 16] | 42.161 | 41.003 | 1.158
+vrp_tight_capacity_12 | feasible | [30, 21, 23] | 78.718 | 78.718 | 0.0
+```
+
+All candidate routes satisfied:
+
+- every customer visited exactly once
+- every route starts and ends at depot
+- every vehicle load is within capacity
+
+### Verification
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused VRP and challenge tests:
+
+```bash
+bin/rails test test/services/vrp_solver_test.rb test/services/gem_vrp_solver_test.rb test/services/vrp_attempt_runner_test.rb test/controllers/challenges_controller_test.rb test/controllers/vrp_attempts_controller_test.rb
+```
+
+Output:
+
+```text
+14 runs, 162 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+47 runs, 322 assertions, 0 failures, 0 errors, 13 skips
+Finished in 51.578313s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+47 runs, 556 assertions, 0 failures, 0 errors, 0 skips
+Finished in 213.357823s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
