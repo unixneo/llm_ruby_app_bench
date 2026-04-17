@@ -1,26 +1,33 @@
 # LLM Ruby Algorithm Error Benchmark
 
-A human-in-the-loop experimental framework for evaluating large language model (LLM) collaborators in research-oriented software development. This project investigates how LLMs handle algorithmic research decisions, specification ambiguity, and verification in a three-role architecture: PI (human), Architect (Claude), and Coder (Codex).
+A human-in-the-loop experimental framework for evaluating large language model (LLM) collaborators in research-oriented software development. This project investigates how LLMs handle algorithmic research decisions, specification ambiguity, validation beyond unit tests, and accountability in a three-role architecture: PI (human), Architect (Claude), and Coder (Codex).
 
 ## Core Finding
 
-**LLM-assisted research software requires explicit governance artifacts** that separate implementation judgment from research-design authority. This experiment demonstrates that:
+**Organizations using LLMs or coding agents require human-in-the-loop governance, not just human-in-the-loop prompting.** This experiment demonstrates that:
 
 - **Passing tests ≠ research correctness** - A system can be locally correct while answering the wrong question
-- **HITL oversight is constitutive, not supervisory** - Without human verification, LLMs make unauthorized algorithmic choices
+- **HITL accountability is constitutive, not supervisory** - Humans preserve research intent, decision authority, and validation standards
 - **Role-separated error logging is essential** - Architect errors (prompt drift) differ from coder errors (implementation bugs)
+- **Prompt/result/error/correction ledgers matter** - Persistent artifacts make drift, workarounds, and unauthorized design choices visible
 
 ## Current Status
 
 **TSP Benchmark Complete:**
 - 3 algorithm implementations (brute-force, nearest-neighbor, Held-Karp)
 - 7 fixtures (symmetric, random, real-world cities)
-- Comparison against OR-Tools reference solver
-- Major finding: OR-Tools was misconfigured to use heuristic mode (CE0006)
+- Comparison against OR-Tools reference configurations
+- Major finding: OR-Tools was initially misconfigured to use greedy heuristic mode (CE0006)
+
+**Application Architecture:**
+- Algorithm-agnostic root page at `/`
+- TSP attempts under `/tsp/attempts`
+- Placeholder cards for future algorithm families
+- CE0007 root-route coupling corrected
 
 **Error Documentation:**
 - 7 Claude/Architect errors (CLE0001-CLE0007)
-- 6 Codex/Coder errors (CE0001-CE0006)
+- 8 Codex/Coder errors (CE0001-CE0008)
 - 2 process corrections (CORRECTIONS.md)
 
 ## Three-Role Architecture
@@ -47,17 +54,17 @@ A human-in-the-loop experimental framework for evaluating large language model (
 ```
 llm_ruby_app_bench/
 ├── PLAN.md                  # Original frozen research plan
-├── PROMPTS.md              # Numbered prompts (P0001-P0015)
-├── RESULTS.md              # Implementation results (R0001-R0015)
+├── PROMPTS.md              # Numbered prompts (P0001-P0017)
+├── RESULTS.md              # Implementation results (R0001-R0017)
 ├── CLAUDE_ERRORS.md        # Architect errors (CLE0001-CLE0007)
-├── CODEX_ERRORS.md         # Coder errors (CE0001-CE0006)
+├── CODEX_ERRORS.md         # Coder errors (CE0001-CE0008)
 ├── CORRECTIONS.md          # Active process corrections (C001-C002)
 ├── ABSTRACT.md             # Research abstract and related work
 ├── app/
 │   ├── models/             # Prompt, Challenge, Attempt, Interpretation
 │   ├── services/           # TspSolver, GemTspSolver, TspAttemptRunner
-│   ├── controllers/        # AttemptsController
-│   └── views/              # Dark-themed UI for result comparison
+│   ├── controllers/        # ChallengesController, AttemptsController
+│   └── views/              # Algorithm index and dark-themed result comparison UI
 ├── db/
 │   ├── seeds.rb            # TSP fixtures and attempt generation
 │   └── schema.rb           # SQLite3 database schema
@@ -93,16 +100,21 @@ bin/rails test
 bin/rails server
 ```
 
-**Visit:** `http://localhost:3001` to view the benchmark UI.
+**Visit:** `http://localhost:3000` to view the benchmark UI.
 
 ## Usage
 
 ### Viewing Results
 
 The web interface displays:
-- **Attempts index:** All TSP solutions with algorithm version, status, result difference
+- **Algorithm index:** Project overview and cards for active/future algorithm families
+- **TSP attempts index:** All TSP solutions with algorithm version, reference version, status, result difference
 - **Attempt detail:** Side-by-side comparison of candidate vs reference results
 - **PI interpretation:** Form for classifying result differences
+
+Current navigation:
+- `/` - Algorithm-agnostic challenge index
+- `/tsp/attempts` - TSP attempt list
 
 ### Running Experiments
 
@@ -148,8 +160,9 @@ Each fixture has results from multiple algorithm versions:
 
 **Reference (OR-Tools):**
 - Initially misconfigured to use greedy heuristic (CE0006)
-- Now uses guided local search for exact optimization
-- Matches Held-Karp on all fixtures
+- Now versioned as `or-tools-guided-local-search-v1`
+- Matches Held-Karp on current exact candidate fixtures
+- Not treated as proof of exact optimality because guided local search is a metaheuristic
 
 ## Key Findings
 
@@ -169,13 +182,13 @@ Each fixture has results from multiple algorithm versions:
 
 **Correction:** PI had to visually inspect UI to catch error. Added explicit tour sequence validation.
 
-### 3. OR-Tools Misconfiguration (CE0006)
+### 3. OR-Tools Misconfiguration (CE0006/CLE0007)
 
-**Problem:** OR-Tools configured with `:path_cheapest_arc` (greedy heuristic) instead of exact solver.
+**Problem:** OR-Tools was configured with `:path_cheapest_arc`, a greedy first-solution strategy. Later prompt language risked replacing that false premise with another by implying guided local search was exact.
 
 **Impact:** Reference solver produced suboptimal results (0.23% worse on random_15). "Ground truth" assumption violated.
 
-**Resolution:** Reconfigured OR-Tools with guided local search. Now matches Held-Karp exact solutions.
+**Resolution:** Reconfigured OR-Tools with guided local search and versioned it as `or-tools-guided-local-search-v1`. It now matches Held-Karp on current exact candidate fixtures, but is documented as a metaheuristic reference configuration, not proof of exact optimality.
 
 ### 4. Workaround Spiral (CE0001)
 
@@ -184,6 +197,22 @@ Each fixture has results from multiple algorithm versions:
 **Impact:** Two iterations of workarounds before architect (Claude) intervened to restore standard Rails conventions.
 
 **Resolution:** Claude fixed environment properly. Demonstrates when coder drift requires architect intervention.
+
+### 5. TSP-Specific Root Route (CE0007)
+
+**Problem:** Codex made TSP the application root route even though the research plan described a multi-algorithm benchmark.
+
+**Impact:** The first algorithm family was incorrectly treated as the whole application architecture.
+
+**Resolution:** Root route now points to an algorithm-agnostic challenges index. TSP attempts are namespaced under `/tsp/attempts`.
+
+### 6. Command Workaround Regression (CE0008)
+
+**Problem:** Codex documented a PATH-prefixed Rails test command in R0016, repeating the workaround pattern corrected after CE0001.
+
+**Impact:** A local shell workaround leaked into the research result record.
+
+**Resolution:** R0016/R0017 now document standard Rails binstub commands such as `bin/rails test`, `bin/rails db:migrate`, and `bin/rails db:seed`.
 
 ## Process Corrections
 
@@ -210,6 +239,7 @@ LLMs may resolve routine programming details (variable names, code structure) bu
 - PI inspects actual UI output, not just test results
 - Manual calculation verifies solver correctness
 - Cross-algorithm comparison (3 candidates vs 1 reference)
+- Reference tools and gems are validated before being treated as ground truth
 
 **Error Attribution:**
 - Architect errors: Specification gaps, contradictions, unauthorized choices
@@ -274,6 +304,6 @@ If you use this work in research, please cite:
 
 ---
 
-**Project Status:** Active research - TSP benchmark complete, ready for additional algorithm families.
+**Project Status:** Active research - TSP benchmark complete, algorithm-agnostic app structure in place, ready for additional algorithm families.
 
-**Last Updated:** 2026-04-16
+**Last Updated:** 2026-04-17
