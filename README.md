@@ -10,7 +10,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 - **HITL accountability is constitutive, not supervisory** - Humans preserve research intent, decision authority, and validation standards
 - **Role-separated error logging is essential** - Architect errors (prompt drift) differ from coder errors (implementation bugs)
 - **Prompt/result/error/correction ledgers matter** - Persistent artifacts make drift, workarounds, and unauthorized design choices visible
-- **Governance framework works** - C004/C005 caught knapsack gem misidentification before implementation (CLE0010)
+- **Governance framework validated** - Two consecutive clean implementations (VRP, Assignment) after corrections established
 
 ## Current Status
 
@@ -27,17 +27,60 @@ A human-in-the-loop experimental framework for evaluating large language model (
    - 5 fixtures: n=5 to n=20 customers, m=2 to m=5 vehicles
    - Reference: OR-Tools RoutingModel with capacity dimension
 
+3. **Assignment Problem** - P0021
+   - Hungarian algorithm (exact polynomial O(n³))
+   - Linear sum assignment with cost minimization
+   - 5 fixtures: 3×3 to 15×15 workers and tasks
+   - Reference: OR-Tools LinearSumAssignment
+   - **All 5 fixtures achieved exact optimal match** (difference 0.0)
+
 **Error Documentation:**
-- 11 Claude/Architect errors (CLE0001-CLE0011)
+- 12 Claude/Architect errors (CLE0001-CLE0012)
 - 9 Codex/Coder errors (CE0001-CE0009)
 - 7 active corrections (C001-C007)
 
 **Recent Major Findings:**
 
+- **P0021 success:** Hungarian algorithm achieved optimal cost on all 5 fixtures with zero implementation errors
+- **Governance validation:** Two consecutive clean implementations (VRP P0020, Assignment P0021) after corrections established
+- **CLE0012:** Manual verification error in P0021 prompt (documented cost 10, actual optimal 9) - architecture self-corrected
+- **Framework generalizes:** Works across NP-hard heuristics (TSP/VRP) and exact polynomial algorithms (Assignment)
 - **CLE0010:** Insufficient gem verification - `knapsack` gem is CI tool, not algorithm solver
-- **CLE0011:** Misrepresentation - initially claimed 7 OR-Tools algorithms, actually 54 modules
 - **CE0009:** Unauthorized vendor bundle configuration caused reboot incompatibility (fixed)
-- **Governance success:** C004/C005 correctly stopped implementation when reference gem premise failed
+
+
+## Strategic Direction: Multi-Domain Approach
+
+**Decision (2026-04-17):** Option A - Diverse algorithm families across optimization and physics
+
+**Algorithm Mix (Target: 40-50 prompts):**
+- **60% Operations Research** (OR-Tools)
+  - Routing: TSP ✅, VRP ✅, CVRP, VRPTW
+  - Assignment: Linear sum ✅, quadratic assignment
+  - Flow: Max flow, min cost flow
+  - Scheduling: Job shop scheduling
+  
+- **30% Celestial Mechanics** (`orbit` gem)
+  - Satellite propagation from TLEs
+  - Look angle calculations
+  - Pass predictions
+  
+- **10% Astronomy** (`astronoby` gem)
+  - Moon phase calculations
+  - Equinox/solstice timing
+  - Coordinate transforms
+
+**Rationale:** 
+- Three distinct error surfaces (combinatorial, numerical, astronomical)
+- Demonstrates framework works across discrete AND continuous problems
+- All reference gems verified functional per C005
+- Stronger generalizability for journal publication
+
+**Paper scope:** "Governance Framework for LLM-Assisted Algorithm Implementation: Evidence from Operations Research and Scientific Computing"
+
+See ALGORITHM_COMPLEXITY_SURVEY.md and PHYSICS_DOMAIN_SURVEY.md for complete analysis.
+
+**Progress:** 21 prompts complete (19 TSP + 1 VRP + 1 Assignment) = 42% of 50-prompt target
 
 ## Three-Role Architecture
 
@@ -63,22 +106,22 @@ A human-in-the-loop experimental framework for evaluating large language model (
 ```
 llm_ruby_app_bench/
 ├── PLAN.md                  # Frozen research charter
-├── PROMPTS.md              # Numbered prompts (P0001-P0020)
-├── RESULTS.md              # Implementation results (R0001-R0020)
-├── CLAUDE_ERRORS.md        # Architect errors (CLE0001-CLE0011)
+├── PROMPTS.md              # Numbered prompts (P0001-P0021)
+├── RESULTS.md              # Implementation results (R0001-R0021)
+├── CLAUDE_ERRORS.md        # Architect errors (CLE0001-CLE0012)
 ├── CODEX_ERRORS.md         # Coder errors (CE0001-CE0009)
 ├── CORRECTIONS.md          # Active corrections (C001-C007)
 ├── RUBYGEMS_SURVEY.md      # Algorithm gem verification
 ├── ABSTRACT.md             # Research abstract
 ├── app/
-│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem
+│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem
 │   ├── services/           # Algorithm solvers and runners
 │   ├── controllers/        # Challenges, Attempts controllers
 │   └── views/              # Algorithm index and result comparison UI
 ├── db/
 │   ├── seeds.rb            # TSP and VRP fixtures
 │   └── schema.rb           # SQLite3 schema
-└── test/                   # 47 tests, 556 assertions
+└── test/                   # 63 tests, 665 assertions
 ```
 
 ## Setup
