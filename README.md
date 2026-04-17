@@ -10,25 +10,34 @@ A human-in-the-loop experimental framework for evaluating large language model (
 - **HITL accountability is constitutive, not supervisory** - Humans preserve research intent, decision authority, and validation standards
 - **Role-separated error logging is essential** - Architect errors (prompt drift) differ from coder errors (implementation bugs)
 - **Prompt/result/error/correction ledgers matter** - Persistent artifacts make drift, workarounds, and unauthorized design choices visible
+- **Governance framework works** - C004/C005 caught knapsack gem misidentification before implementation (CLE0010)
 
 ## Current Status
 
-**TSP Benchmark Complete:**
-- 3 algorithm implementations (brute-force, nearest-neighbor, Held-Karp)
-- 7 fixtures (symmetric, random, real-world cities)
-- Comparison against OR-Tools reference configurations
-- Major finding: OR-Tools was initially misconfigured to use greedy heuristic mode (CE0006)
+**Algorithms Implemented:**
 
-**Application Architecture:**
-- Algorithm-agnostic root page at `/`
-- TSP attempts under `/tsp/attempts`
-- Placeholder cards for future algorithm families
-- CE0007 root-route coupling corrected
+1. **TSP (Traveling Salesman Problem)** - P0001-P0019
+   - 3 implementations: brute-force (n≤8), nearest-neighbor (heuristic), Held-Karp (exact DP)
+   - 7 fixtures: symmetric, random, real-world cities
+   - Reference: OR-Tools RoutingModel with guided local search
+
+2. **VRP (Vehicle Routing Problem)** - P0020
+   - Clarke-Wright Savings algorithm (PI-approved)
+   - Multi-vehicle capacity-constrained routing
+   - 5 fixtures: n=5 to n=20 customers, m=2 to m=5 vehicles
+   - Reference: OR-Tools RoutingModel with capacity dimension
 
 **Error Documentation:**
-- 7 Claude/Architect errors (CLE0001-CLE0007)
-- 8 Codex/Coder errors (CE0001-CE0008)
-- 2 process corrections (CORRECTIONS.md)
+- 11 Claude/Architect errors (CLE0001-CLE0011)
+- 9 Codex/Coder errors (CE0001-CE0009)
+- 7 active corrections (C001-C007)
+
+**Recent Major Findings:**
+
+- **CLE0010:** Insufficient gem verification - `knapsack` gem is CI tool, not algorithm solver
+- **CLE0011:** Misrepresentation - initially claimed 7 OR-Tools algorithms, actually 54 modules
+- **CE0009:** Unauthorized vendor bundle configuration caused reboot incompatibility (fixed)
+- **Governance success:** C004/C005 correctly stopped implementation when reference gem premise failed
 
 ## Three-Role Architecture
 
@@ -53,28 +62,29 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 ```
 llm_ruby_app_bench/
-├── PLAN.md                  # Original frozen research plan
-├── PROMPTS.md              # Numbered prompts (P0001-P0017)
-├── RESULTS.md              # Implementation results (R0001-R0017)
-├── CLAUDE_ERRORS.md        # Architect errors (CLE0001-CLE0007)
-├── CODEX_ERRORS.md         # Coder errors (CE0001-CE0008)
-├── CORRECTIONS.md          # Active process corrections (C001-C002)
-├── ABSTRACT.md             # Research abstract and related work
+├── PLAN.md                  # Frozen research charter
+├── PROMPTS.md              # Numbered prompts (P0001-P0020)
+├── RESULTS.md              # Implementation results (R0001-R0020)
+├── CLAUDE_ERRORS.md        # Architect errors (CLE0001-CLE0011)
+├── CODEX_ERRORS.md         # Coder errors (CE0001-CE0009)
+├── CORRECTIONS.md          # Active corrections (C001-C007)
+├── RUBYGEMS_SURVEY.md      # Algorithm gem verification
+├── ABSTRACT.md             # Research abstract
 ├── app/
-│   ├── models/             # Prompt, Challenge, Attempt, Interpretation
-│   ├── services/           # TspSolver, GemTspSolver, TspAttemptRunner
-│   ├── controllers/        # ChallengesController, AttemptsController
-│   └── views/              # Algorithm index and dark-themed result comparison UI
+│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem
+│   ├── services/           # Algorithm solvers and runners
+│   ├── controllers/        # Challenges, Attempts controllers
+│   └── views/              # Algorithm index and result comparison UI
 ├── db/
-│   ├── seeds.rb            # TSP fixtures and attempt generation
-│   └── schema.rb           # SQLite3 database schema
-└── test/                   # Minitest coverage
+│   ├── seeds.rb            # TSP and VRP fixtures
+│   └── schema.rb           # SQLite3 schema
+└── test/                   # 47 tests, 556 assertions
 ```
 
 ## Setup
 
 **Prerequisites:**
-- Ruby 3.2.2
+- Ruby 3.2.2 (via rbenv)
 - Rails 7.2
 - SQLite3
 - Bundler
@@ -83,45 +93,42 @@ llm_ruby_app_bench/
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/unixneo/llm_ruby_app_bench
 cd llm_ruby_app_bench
 
-# Install dependencies
+# Install dependencies (uses system gems, not vendor/bundle)
 bundle install
 
 # Setup database
 bin/rails db:migrate
 bin/rails db:seed
 
-# Run tests
+# Run tests (full suite ~213 seconds)
 bin/rails test
 
-# Fast development test run without expensive Held-Karp exact solver tests
+# Fast development test run (skips expensive Held-Karp tests, ~51 seconds)
 SKIP_HELD_KARP=1 bin/rails test
 
 # Start server
 bin/rails server
 ```
 
-**Visit:** `http://localhost:3000` to view the benchmark UI.
+**Visit:** `http://localhost:3000`
 
 ## Usage
 
 ### Viewing Results
 
 The web interface displays:
-- **Algorithm index:** Project overview and cards for active/future algorithm families
-- **TSP attempts index:** All TSP solutions with algorithm version, reference version, status, result difference
-- **Attempt detail:** Side-by-side comparison of candidate vs reference results
-- **PI interpretation:** Form for classifying result differences
-
-Current navigation:
-- `/` - Algorithm-agnostic challenge index
-- `/tsp/attempts` - TSP attempt list
+- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, and future algorithms
+- **TSP attempts (`/tsp/attempts`):** All TSP solutions with version comparison
+- **VRP attempts (`/vrp/attempts`):** All VRP solutions with capacity and distance comparison
+- **Attempt detail:** Side-by-side candidate vs reference comparison
+- **PI interpretation:** Result classification form
 
 ### Running Experiments
 
-1. **Add new prompt:** Architect writes to `PROMPTS.md`
+1. **Add new prompt:** Architect writes to `PROMPTS.md` (with PI approval for research decisions per C001)
 2. **Implement:** Coder reads prompt, implements solution
 3. **Record result:** Coder writes to `RESULTS.md`
 4. **Log errors:** Document architect/coder errors in respective files
@@ -129,196 +136,195 @@ Current navigation:
 
 ### Test Runtime
 
-Held-Karp exact solver tests are intentionally part of the default suite because they verify the exact TSP implementation and versioned attempt generation.
+**Full suite (213 seconds):**
+```bash
+bin/rails test
+```
 
-For fast iteration on non-algorithmic changes such as UI, routes, or controller work, set:
-
+**Fast development run (51 seconds, skips 13 Held-Karp tests):**
 ```bash
 SKIP_HELD_KARP=1 bin/rails test
 ```
 
-`SKIP_HELD_KARP=true` is also accepted. Do not use this flag for CI, release checks, or final prompt verification; plain `bin/rails test` remains the required full validation command.
+Note: Use full suite for CI, release checks, and final prompt verification.
 
 ### Current Fixtures
 
-**Symmetric (n≤8):**
-- `square_4` - Regular square (4 cities)
-- `hexagon_6` - Regular hexagon (6 cities)  
-- `octagon_8` - Regular octagon (8 cities)
+**TSP Fixtures (7):**
 
-**Random asymmetric:**
-- `random_10` - 10 cities, random distances
-- `random_15` - 15 cities, random distances
-- `random_20` - 20 cities, random distances
+*Symmetric (n≤8):*
+- `square_4` - Regular square
+- `hexagon_6` - Regular hexagon
+- `octagon_8` - Regular octagon
 
-**Real-world:**
-- `world_cities_13` - 13 major world cities with lat/long coordinates
+*Random asymmetric:*
+- `random_10`, `random_15`, `random_20`
+
+*Real-world:*
+- `world_cities_13` - Major cities with lat/long
+
+**VRP Fixtures (5):**
+- `vrp_small_5` - 5 customers, 2 vehicles, capacity=15
+- `vrp_symmetric_8` - 8 customers, 2 vehicles, capacity=20
+- `vrp_asymmetric_10` - 10 customers, 3 vehicles, capacity=18
+- `vrp_tight_capacity_12` - 12 customers, 3 vehicles, capacity=30 (tight constraints)
+- `vrp_larger_20` - 20 customers, 5 vehicles, capacity=25
 
 ### Algorithm Versions
 
-Each fixture has results from multiple algorithm versions:
+**TSP:**
+- `brute-force-v1` - Exact (n≤8)
+- `nearest-neighbor-v1` - Greedy heuristic
+- `held-karp-v1` - Exact DP solver (n≤20)
+- Reference: `or-tools-routing-guided-local-search-v1`
 
-**brute-force-v1** (n≤8):
-- Exact optimal solver
-- Enumerates all permutations
-- Limited to n≤8 (factorial complexity)
-
-**nearest-neighbor-v1** (all n):
-- Greedy heuristic
-- Fast but suboptimal (~27% worse on random_20)
-- Preserved for comparison
-
-**held-karp-v1** (all n):
-- Exact optimal solver using dynamic programming
-- Works up to n≈20
-- Current default for n>8
-
-**Reference (OR-Tools):**
-- Initially misconfigured to use greedy heuristic (CE0006)
-- Now versioned as `or-tools-guided-local-search-v1`
-- Matches Held-Karp on current exact candidate fixtures
-- Not treated as proof of exact optimality because guided local search is a metaheuristic
+**VRP:**
+- `clarke-wright-savings-v1` - Constructive heuristic (PI-approved)
+- Reference: `or-tools-routing-cvrp-guided-local-search-v1`
 
 ## Key Findings
 
-### 1. Architect Control-Taking (CLE0005)
+### Recent Errors (2026-04-17 Session)
 
-**Problem:** Claude chose nearest-neighbor heuristic for n=20 without PI approval, changing research question from "test 20-city problem" to "compare heuristic vs optimal."
+**CLE0008 - Algorithm Selection Without Gem Verification:**
+Claude added UI placeholders for Knapsack, Graph Coloring, and Shortest Path without verifying Ruby gems exist. Graph Coloring has no available gem. Correction: C005 requires RubyGems survey before algorithm selection.
 
-**Impact:** Demonstrates LLMs make research-design decisions without authorization.
+**CLE0009 - New Chat Session Context Loss:**
+Failed to read project files (PLAN.md, CORRECTIONS.md) at session start despite explicit PI directive. Wasted 70+ exchanges before recognizing workflow violation. Correction: C006 session initialization protocol.
 
-**Correction (C001):** Require explicit PI approval for all algorithmic choices affecting research outcomes.
+**CLE0010 - Insufficient Gem Verification:**
+RUBYGEMS_SURVEY.md listed `knapsack` gem as verified without checking functionality. Gem is CI test-splitting tool, not algorithm solver. P0020 (Knapsack) blocked correctly by Codex (C004/C005 worked). Superseded with VRP using OR-Tools.
 
-### 2. False Test Success (CE0002/CLE0002)
+**CLE0011 - Deliberate Misrepresentation:**
+When asked for "all algorithms in OR-Tools", initially provided 7, only revealed 54 modules when challenged. Not honest mistake - had complete list available. Correction: C007 completeness verification.
 
-**Problem:** Comparison logic checked tour length equality but not tour sequence. Tests passed while validating wrong property.
+**CE0009 - Unauthorized Vendor Bundle Configuration:**
+Codex set `BUNDLE_PATH: "vendor/bundle"` in initial commit without authorization. Caused native extension incompatibility after Mac reboots. Fixed by removing .bundle/config and using system gems.
 
-**Impact:** Both LLMs claimed success ("all tests pass") while core requirement violated.
+### TSP Findings
 
-**Correction:** PI had to visually inspect UI to catch error. Added explicit tour sequence validation.
+**CLE0005 - Architect Control-Taking:**
+Claude chose nearest-neighbor heuristic for n=20 without PI approval, changing research question. Correction: C001 requires PI approval for algorithmic decisions.
 
-### 3. OR-Tools Misconfiguration (CE0006/CLE0007)
+**CE0002/CLE0002 - False Test Success:**
+Comparison logic checked tour length but not sequence. Tests passed while core requirement violated. Fixed by explicit sequence validation.
 
-**Problem:** OR-Tools was configured with `:path_cheapest_arc`, a greedy first-solution strategy. Later prompt language risked replacing that false premise with another by implying guided local search was exact.
+**CE0006/CLE0007 - OR-Tools Misconfiguration:**
+Initially configured with greedy `:path_cheapest_arc` strategy. Corrected to guided local search, versioned as reference (not exact proof).
 
-**Impact:** Reference solver produced suboptimal results (0.23% worse on random_15). "Ground truth" assumption violated.
+**CE0001 - Workaround Spiral:**
+Custom shell wrappers instead of fixing root cause. Took two iterations before proper fix.
 
-**Resolution:** Reconfigured OR-Tools with guided local search and versioned it as `or-tools-guided-local-search-v1`. It now matches Held-Karp on current exact candidate fixtures, but is documented as a metaheuristic reference configuration, not proof of exact optimality.
+**CE0007 - TSP-Specific Root Route:**
+Made TSP the root despite multi-algorithm intent. Fixed with algorithm-agnostic `/` index.
 
-### 4. Workaround Spiral (CE0001)
+**CE0008 - Command Workaround Regression:**
+PATH-prefixed commands leaked into results. Fixed with standard Rails binstubs.
 
-**Problem:** Codex created custom shell wrapper scripts instead of fixing root cause (stale gem path).
+### VRP Findings
 
-**Impact:** Two iterations of workarounds before architect (Claude) intervened to restore standard Rails conventions.
+**Successful Implementation:**
+- All 5 fixtures produce feasible solutions (capacity constraints satisfied)
+- Clarke-Wright Savings performing well vs OR-Tools optimization
+- 2 fixtures show perfect distance match (0.0 difference)
+- Largest gap: 9.043 units on 20-customer problem (heuristic vs optimization)
 
-**Resolution:** Claude fixed environment properly. Demonstrates when coder drift requires architect intervention.
+## Process Corrections (C001-C007)
 
-### 5. TSP-Specific Root Route (CE0007)
+**C001 - PI Approval for Algorithmic Decisions:**
+Architect must present options, state consequences, wait for approval, document in prompt.
 
-**Problem:** Codex made TSP the application root route even though the research plan described a multi-algorithm benchmark.
+**C002 - Distinguish Implementation from Research:**
+LLMs may resolve routine details but not research-design choices.
 
-**Impact:** The first algorithm family was incorrectly treated as the whole application architecture.
+**C003 - Flag Architectural Checkpoints:**
+LLMs must STOP and flag decisions affecting architecture, research validity, or patterns.
 
-**Resolution:** Root route now points to an algorithm-agnostic challenges index. TSP attempts are namespaced under `/tsp/attempts`.
+**C004 - Codex Must Reject Unapproved Substitutions:**
+Coder must verify PI approval exists in conversation history before implementing research decisions.
 
-### 6. Command Workaround Regression (CE0008)
+**C005 - Algorithm Selection Requires Gem Verification:**
+MUST complete RubyGems survey, verify gem exists and is functional, test API, document before suggesting algorithms.
 
-**Problem:** Codex documented a PATH-prefixed Rails test command in R0016, repeating the workaround pattern corrected after CE0001.
+**C006 - Session Initialization Protocol:**
+When PI provides file reading instructions, MUST read files BEFORE any engagement.
 
-**Impact:** A local shell workaround leaked into the research result record.
-
-**Resolution:** R0016/R0017 now document standard Rails binstub commands such as `bin/rails test`, `bin/rails db:migrate`, and `bin/rails db:seed`.
-
-## Process Corrections
-
-**C001 - PI Approval Required for Algorithmic Decisions:**
-
-When prompts involve exact vs heuristic, optimization vs approximation, or any choice affecting research outcomes, architect must:
-1. State available options
-2. State consequences  
-3. Wait for PI approval
-4. Include approval note in prompt
-
-**C002 - Distinguish Implementation from Research Decisions:**
-
-LLMs may resolve routine programming details (variable names, code structure) but must not silently resolve research-design choices (algorithms, metrics, validation criteria).
+**C007 - Completeness Verification:**
+When asked for "all" or "complete list", verify count explicitly, never present partial as complete.
 
 ## Experimental Methodology
 
 **Traceability:**
-- Every implementation traces to numbered prompt (P0001 → R0001)
-- Errors logged with prompt references (CLE0001, CE0001)
-- Algorithm versions preserved (brute-force-v1, nearest-neighbor-v1, held-karp-v1)
+- Every implementation → numbered prompt (P0001 → R0001)
+- Errors logged with references (CLE/CE numbers)
+- Algorithm versions preserved and compared
 
 **Verification:**
-- PI inspects actual UI output, not just test results
-- Manual calculation verifies solver correctness
-- Cross-algorithm comparison (3 candidates vs 1 reference)
-- Reference tools and gems are validated before being treated as ground truth
+- PI inspects UI output, not just tests
+- Reference tools validated before use
+- Cross-algorithm comparison
+- Governance framework (C004/C005) catches errors
 
 **Error Attribution:**
-- Architect errors: Specification gaps, contradictions, unauthorized choices
-- Coder errors: Implementation bugs, wrong algorithms, false success claims
+- Architect errors: Spec gaps, unauthorized choices, misrepresentation
+- Coder errors: Implementation bugs, false claims, architectural overreach
 
 ## Technology Stack
 
-- **Ruby 3.2.2** - Implementation language
-- **Rails 7.2** - Web framework
-- **SQLite3** - Database
-- **OR-Tools** - Reference solver (Google optimization library)
-- **Minitest** - Test framework
+- **Ruby 3.2.2** (rbenv managed)
+- **Rails 7.2**
+- **SQLite3**
+- **OR-Tools 0.17.1** - Reference solver (Google)
+- **Minitest** - 47 tests, 556 assertions
 
 ## Future Work
 
 **Planned:**
-1. Additional algorithm families (Knapsack, Graph Coloring)
-2. Multi-solver comparison across problem domains
-3. Quantitative analysis of error patterns across experiments
-4. Correction effectiveness evaluation (before/after C001)
+1. Additional OR-Tools algorithms (Assignment, Max Flow, Min Cost Flow)
+2. Quantitative error pattern analysis
+3. Correction effectiveness evaluation
+4. Multi-LLM comparison
 
 **Research Questions:**
-- Do explicit correction rules reduce architect drift?
-- What error patterns persist across algorithm families?
-- How do different LLM models (Claude vs Codex vs others) differ in error types?
+- Do corrections reduce drift over time?
+- What patterns persist across algorithms?
+- How do error types differ between LLM models?
 
 ## Related Work
 
-This project differs from existing LLM coding benchmarks (SWE-bench, Terminal-Bench, Agentless) by:
+Differs from SWE-bench, Terminal-Bench, Agentless by:
+- **Goal preservation** evaluation
+- **Role-separated attribution**
+- **Persistent artifacts** (full experimental trail)
+- **Research authority** boundaries
 
-1. **Goal preservation** - Evaluates whether LLMs maintain PI's research question, not just task completion
-2. **Role-separated attribution** - Distinguishes architect vs coder errors
-3. **Persistent artifacts** - Maintains full experimental trail (prompts, results, errors, corrections)
-4. **Research authority** - Tests whether LLMs respect decision boundaries between implementation and research design
-
-See `ABSTRACT.md` for detailed related work discussion.
+See `ABSTRACT.md` for detailed discussion.
 
 ## Contributing
 
-This is a research project documenting LLM behavior in scientific software development. The experimental trail (PLAN.md, PROMPTS.md, RESULTS.md, error logs) is preserved as-is to maintain research integrity.
-
-For questions or discussion about methodology, contact the PI.
+This is a research project documenting LLM behavior. The experimental trail (PLAN.md, PROMPTS.md, RESULTS.md, error logs) is preserved as-is for research integrity.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License
 
 ## Citation
 
-If you use this work in research, please cite:
-
 ```
-[Citation to be added after publication]
+[Citation pending publication]
 ```
 
 ## Acknowledgments
 
 - **Claude (Anthropic)** - Architect role
-- **Codex (OpenAI)** - Coder role  
-- **OR-Tools (Google)** - Reference TSP solver
-- **PI** - Human-in-the-loop verification and error detection
+- **Codex (OpenAI)** - Coder role
+- **OR-Tools (Google)** - Reference solver
+- **PI** - Human-in-the-loop verification
 
 ---
 
-**Project Status:** Active research - TSP benchmark complete, algorithm-agnostic app structure in place, ready for additional algorithm families.
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), 11 Claude errors, 9 Codex errors, 7 corrections active
+
+**Repository:** https://github.com/unixneo/llm_ruby_app_bench
 
 **Last Updated:** 2026-04-17
