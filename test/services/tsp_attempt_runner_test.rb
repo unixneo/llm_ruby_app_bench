@@ -1,5 +1,7 @@
 require "test_helper"
 
+# Set SKIP_HELD_KARP=1 or SKIP_HELD_KARP=true to skip runner tests that
+# generate held-karp-v1 attempts. By default, all Held-Karp tests run.
 class TspAttemptRunnerTest < ActiveSupport::TestCase
   FakeReferenceResult = Data.define(:tour, :length, :source, :reference_version) do
     def to_h
@@ -40,6 +42,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "stores candidate and reference results for every P0001 fixture" do
+    skip_held_karp_if_requested
+
     attempts = runner.run_all
 
     assert_equal 12, attempts.length
@@ -58,6 +62,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "stores different optimal when length matches but route sequence differs" do
+    skip_held_karp_if_requested
+
     attempt = runner.run_all.find { |record| record.fixture_name == "octagon_8" }
 
     assert_equal "different_optimal", attempt.status
@@ -66,6 +72,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "stores held karp candidate results for all fixtures" do
+    skip_held_karp_if_requested
+
     attempts = runner.run_all
 
     TspFixtures.all.each do |fixture|
@@ -82,6 +90,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "stores three world city algorithm attempts" do
+    skip_held_karp_if_requested
+
     attempts = runner.run_all.select { |attempt| attempt.fixture_name == "world_cities_13" }
 
     assert_equal ["brute-force-v1", "held-karp-v1", "nearest-neighbor-v1"], attempts.map(&:algorithm_version).sort
@@ -99,6 +109,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "world city fixture keeps city names for display" do
+    skip_held_karp_if_requested
+
     attempt = runner.run_all.find do |record|
       record.fixture_name == "world_cities_13" && record.algorithm_version == "held-karp-v1"
     end
@@ -108,6 +120,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "preserves explicit nearest neighbor version when held karp records are added" do
+    skip_held_karp_if_requested
+
     nearest_neighbor_attempts = TspAttemptRunner.new(
       candidate_solvers: [TspSolver.new(algorithm: :nearest_neighbor)],
       reference_solver: FakeReferenceSolver.new
@@ -122,6 +136,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "rerunning preserves existing versioned attempts" do
+    skip_held_karp_if_requested
+
     first_run = runner.run_all
     ids = first_run.map(&:id).sort
     updated_at_values = first_run.to_h { |attempt| [attempt.id, attempt.updated_at] }
@@ -136,6 +152,8 @@ class TspAttemptRunnerTest < ActiveSupport::TestCase
   end
 
   test "creates new attempts when reference version changes" do
+    skip_held_karp_if_requested
+
     legacy_solver = Class.new do
       Result = Data.define(:tour, :length, :source, :reference_version) do
         def to_h

@@ -6,6 +6,9 @@ class ChallengesController < ApplicationController
       algorithm_count: Attempt.distinct.count(:algorithm_version),
       attempt_count: Attempt.count
     }
+    # Future algorithm families must have verified Ruby reference gems.
+    # C005: Algorithm selection requires RubyGems survey (see RUBYGEMS_SURVEY.md).
+    # Only add placeholders after gem verification is complete.
     @future_challenges = [
       {
         name: "Knapsack Problem",
@@ -13,14 +16,9 @@ class ChallengesController < ApplicationController
         status: "Coming Soon"
       },
       {
-        name: "Graph Coloring",
-        description: "Constraint solving over graph structure.",
-        status: "Coming Soon"
-      },
-      {
         name: "Shortest Path Algorithms",
         description: "Pathfinding and weighted graph comparisons.",
-        status: "Coming Soon"
+        status: "Pending Verification"
       }
     ]
   end

@@ -18,6 +18,9 @@ tmp/
 node_modules/
 vendor/bundle/
 
+# Bundle configuration (CE0009 - use system gems, not vendor bundle)
+.bundle/
+
 # Rails
 /tmp/storage/
 /storage/

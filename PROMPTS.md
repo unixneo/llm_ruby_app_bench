@@ -1442,3 +1442,185 @@ From P0017 forward, all Rails commands in RESULTS.md should use standard binstub
 ❌ Wrong: Custom wrapper scripts  
 
 This is the standard Rails pattern used in all other projects in `/Users/timbass/rails/`.
+
+
+---
+
+## P0018 - Remove Invalid Algorithm Placeholder and Document Gem Verification Requirement
+
+**Target:** Correct UI placeholder error (CLE0008) by removing "Graph Coloring" and documenting C005 compliance.
+
+**Problem (from CLE0008):**
+
+P0016 added three algorithm placeholders to the UI:
+- Knapsack Problem ✅ (verified: `knapsack` gem exists)
+- Graph Coloring ❌ (NO gem found via RubyGems survey)
+- Shortest Path Algorithms ⚠️ (pending RGL verification)
+
+Core methodology requires **"the math is the reviewer"** → reference gem must exist BEFORE adding UI placeholders. Graph Coloring violates this constraint.
+
+**Constraints:**
+
+- Standard Rails patterns
+- SQLite3 only
+- No model/service/test changes
+- Update only: `app/controllers/challenges_controller.rb`
+- Follow C005: Algorithm selection protocol (see RUBYGEMS_SURVEY.md)
+
+**Scope:**
+
+1. **Remove Graph Coloring placeholder:**
+   - Delete the hash entry from `@future_challenges` array
+   - This algorithm has NO verified Ruby reference gem
+
+2. **Update Shortest Path status:**
+   - Change status from "Coming Soon" to "Pending Verification"
+   - Indicates RGL gem investigation required before approval
+
+3. **Add C005 compliance comment:**
+   - Add comment above `@future_challenges` assignment
+   - Reference RUBYGEMS_SURVEY.md
+   - State requirement: algorithms MUST have verified gem before placeholder
+
+**Example target code:**
+
+```ruby
+# Future algorithm families - MUST have verified Ruby reference gem
+# C005: Algorithm selection requires RubyGems survey (see RUBYGEMS_SURVEY.md)
+# Only add placeholders AFTER gem verification is complete
+@future_challenges = [
+  {
+    name: "Knapsack Problem",
+    description: "Optimization under capacity constraints.",
+    status: "Coming Soon"
+  },
+  {
+    name: "Shortest Path Algorithms",
+    description: "Pathfinding and weighted graph comparisons.",
+    status: "Pending Verification"
+  }
+]
+```
+
+**Success criteria:**
+
+- "Graph Coloring" removed from UI
+- Comment documents C005 compliance requirement
+- "Shortest Path" marked as pending RGL verification
+- App runs without errors
+- UI displays only two future challenge cards
+
+**Out of scope for P0018:**
+
+- Adding new algorithms
+- Installing gems
+- RGL investigation (future prompt)
+- Modifying models, services, or tests
+- Changing TSP functionality
+
+**Deliverables:**
+
+- Updated `app/controllers/challenges_controller.rb` with Graph Coloring removed
+- R0018 documenting:
+  - What was changed and why (CLE0008 correction)
+  - UI screenshot or description showing two placeholder cards
+  - Reference to RUBYGEMS_SURVEY.md
+  - Confirmation app runs correctly
+
+**Error context:**
+
+This corrects CLE0008 (Algorithm Selection Without Reference Gem Verification). The Graph Coloring placeholder was added in P0016 without first verifying a Ruby gem exists. RUBYGEMS_SURVEY.md (completed 2026-04-17) found NO graph coloring gems available.
+
+**Future protocol (C005):**
+
+From P0018 forward, NO algorithm placeholders may be added to the UI without first:
+1. Completing RubyGems survey for that algorithm
+2. Verifying reference gem exists and is accessible
+3. Testing gem API compatibility
+4. PI approval
+
+This ensures "the math is the reviewer" methodology is preserved.
+
+
+---
+
+## P0019 - Add Environment Variable to Skip Held-Karp Tests
+
+**Target:** Speed up test suite by allowing Held-Karp exact solver tests to be skipped via environment variable.
+
+**Problem:**
+
+Held-Karp exact solver tests are computationally expensive and slow down the test suite during development. When working on non-algorithmic changes (UI, routes, controllers), running full exact solver tests is unnecessary.
+
+**Constraints:**
+
+- Standard Rails patterns
+- SQLite3 only
+- Environment variable: `SKIP_HELD_KARP=1` or `SKIP_HELD_KARP=true`
+- When set, skip all tests that invoke Held-Karp solver
+- When unset, run all tests normally (default behavior)
+- No changes to test assertions or validation logic
+- No changes to actual solver implementations
+
+**Scope:**
+
+1. **Identify Held-Karp test cases:**
+   - Review `test/services/tsp_attempt_runner_test.rb`
+   - Review `test/models/attempt_test.rb`
+   - Review any other test files that invoke Held-Karp solver
+   - Find tests that call `held_karp` algorithm or fixture combinations
+
+2. **Add skip guards:**
+   - Use Rails test skip mechanism: `skip "..." if ENV['SKIP_HELD_KARP']`
+   - Add skip at beginning of slow Held-Karp test cases
+   - Skip message should explain: "Set SKIP_HELD_KARP to skip expensive exact solver tests"
+
+3. **Document in test files:**
+   - Add comment at top of test file explaining the flag
+   - Document default behavior (all tests run when flag unset)
+
+4. **Update README or test documentation:**
+   - Document the environment variable
+   - Show example: `SKIP_HELD_KARP=1 bin/rails test`
+   - Explain when to use (development, fast iteration)
+   - Explain when NOT to use (CI, pre-commit validation)
+
+**Example pattern:**
+
+```ruby
+test "stores held_karp candidate results for all fixtures" do
+  skip "Set SKIP_HELD_KARP to skip expensive exact solver tests" if ENV['SKIP_HELD_KARP']
+  
+  # existing test code...
+end
+```
+
+**Success criteria:**
+
+- `bin/rails test` runs all tests (default)
+- `SKIP_HELD_KARP=1 bin/rails test` skips Held-Karp tests and completes faster
+- Skipped tests clearly indicate why they were skipped
+- No changes to test logic or assertions
+- Documentation updated
+
+**Out of scope:**
+
+- Creating new test fixtures
+- Modifying solver implementations
+- Changing benchmark logic
+- Adding other skip flags (only SKIP_HELD_KARP for this prompt)
+
+**Deliverables:**
+
+- Updated test files with skip guards for Held-Karp tests
+- Documentation of SKIP_HELD_KARP flag
+- R0019 documenting:
+  - Which tests were modified
+  - Test run time comparison (with/without flag)
+  - Example usage commands
+  - Verification that skipped tests work when flag is unset
+
+**Performance target:**
+
+Skipping Held-Karp tests should reduce test suite time significantly (exact speedup to be measured in R0019).
+

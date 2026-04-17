@@ -185,3 +185,52 @@ PLAN.md remains the frozen research charter. It defines:
 Neither Claude nor Codex may modify PLAN.md. Changes to research direction, scope, or methodology require PI approval documented in the conversation, not in prompts or code.
 
 If a prompt or implementation appears to contradict PLAN.md, the LLM must flag the contradiction and wait for PI clarification.
+
+
+---
+
+## C005 - Algorithm Selection Requires Reference Gem Verification
+
+**Date:** 2026-04-17  
+**Addresses:** CLE0008 (P0016 placeholder creation, current session algorithm suggestions)
+
+**Problem:**
+
+P0016 added UI placeholders for "Knapsack Problem", "Graph Coloring", and "Shortest Path Algorithms" without first verifying Ruby reference gems exist. Core methodology **"the math is the reviewer"** requires reference implementation for validation. Graph Coloring has NO available gem, making it infeasible.
+
+**Correction:**
+
+BEFORE suggesting any algorithm for next family or adding UI placeholders, Architect MUST:
+
+1. **Complete RubyGems survey** - Search rubygems.org for algorithm implementations
+2. **Verify gem exists and is accessible** - Confirm reference implementation available
+3. **Test gem API compatibility** - Verify gem can serve as reference for benchmark
+4. **Document in RUBYGEMS_SURVEY.md** - Record findings before proceeding
+5. **Present only verified options to PI** - Only suggest algorithms with confirmed gems
+
+**Workflow:**
+
+Correct sequence:
+1. Survey gems → 2. Verify availability → 3. Present options → 4. PI selects → 5. Create prompt
+
+Incorrect sequence (what happened):
+1. "Graph coloring would be cool!" → 2. Create UI placeholder → 3. "Oh wait, is there a gem?"
+
+**Enforcement:**
+
+- RUBYGEMS_SURVEY.md must exist and document gem verification before algorithm selection
+- UI placeholders may ONLY list algorithms with verified reference gems
+- Architect prompts must reference survey when proposing algorithms
+- Any algorithm suggestion without prior gem verification is a violation
+
+**Scope:**
+
+Applies to:
+- New algorithm family selection
+- UI placeholder creation
+- Scope expansion discussions
+- Any research direction involving new algorithm domains
+
+Does not apply to:
+- TSP variants (tsp_solver gem already verified)
+- Implementation details within approved algorithm families

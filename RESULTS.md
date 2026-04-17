@@ -1374,3 +1374,198 @@ Output:
 ```text
 36 runs, 415 assertions, 0 failures, 0 errors, 0 skips
 ```
+
+---
+
+## R0018 - P0018 Remove Invalid Algorithm Placeholder
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+P0018 corrected the CLE0008 placeholder error by removing the unverified Graph Coloring algorithm card from the algorithm index.
+
+Implemented:
+
+- removed `Graph Coloring` from `ChallengesController#index`
+- changed `Shortest Path Algorithms` status from `Coming Soon` to `Pending Verification`
+- added the C005 compliance comment above `@future_challenges`
+- referenced `RUBYGEMS_SURVEY.md` in the controller comment
+- updated the controller test to assert Graph Coloring is absent and Shortest Path is pending verification
+
+### UI State
+
+The future algorithm cards now show:
+
+```text
+Knapsack Problem | Coming Soon
+Shortest Path Algorithms | Pending Verification
+```
+
+Graph Coloring is no longer displayed because `RUBYGEMS_SURVEY.md` found no verified Ruby reference gem for graph coloring.
+
+### C005 Compliance
+
+The controller now documents the process rule directly near the placeholder list:
+
+```ruby
+# Future algorithm families must have verified Ruby reference gems.
+# C005: Algorithm selection requires RubyGems survey (see RUBYGEMS_SURVEY.md).
+# Only add placeholders after gem verification is complete.
+```
+
+This keeps the root page aligned with the "the math is the reviewer" methodology: UI placeholders should not imply an algorithm family is viable until a Ruby reference implementation has been verified.
+
+### Verification
+
+Syntax checks passed:
+
+```bash
+ruby -c app/controllers/challenges_controller.rb
+ruby -c test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+Syntax OK
+Syntax OK
+```
+
+Focused controller test:
+
+```bash
+bin/rails test test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+3 runs, 25 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+36 runs, 419 assertions, 0 failures, 0 errors, 0 skips
+```
+
+No PATH prefix, shell wrapper, or CE0001-style workaround was used.
+
+---
+
+## R0019 - P0019 Add SKIP_HELD_KARP Test Flag
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+P0019 added an opt-in test flag for fast development runs that do not need expensive Held-Karp exact solver coverage.
+
+Implemented:
+
+- added `skip_held_karp_if_requested` helper in `test/test_helper.rb`
+- accepted exactly `SKIP_HELD_KARP=1` and `SKIP_HELD_KARP=true`
+- added Held-Karp skip comments to `TspSolverTest` and `TspAttemptRunnerTest`
+- guarded tests that directly invoke Held-Karp or generate `held-karp-v1` attempts through `TspAttemptRunner#run_all`
+- documented the flag in `README.md`
+- preserved default full-test behavior when the flag is unset
+
+### Tests Modified
+
+Held-Karp skip guards were added in:
+
+```text
+test/services/tsp_solver_test.rb
+test/services/tsp_attempt_runner_test.rb
+```
+
+The shared helper was added in:
+
+```text
+test/test_helper.rb
+```
+
+### Usage
+
+Fast development run:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Alternate accepted value:
+
+```bash
+SKIP_HELD_KARP=true bin/rails test
+```
+
+Full validation remains:
+
+```bash
+bin/rails test
+```
+
+### Verification
+
+Focused P0018 controller test:
+
+```bash
+bin/rails test test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+3 runs, 25 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+36 runs, 185 assertions, 0 failures, 0 errors, 13 skips
+Finished in 31.508809s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+36 runs, 419 assertions, 0 failures, 0 errors, 0 skips
+Finished in 193.830601s
+```
+
+Alternate accepted flag value:
+
+```bash
+SKIP_HELD_KARP=true bin/rails test test/services/tsp_solver_test.rb
+```
+
+Output:
+
+```text
+12 runs, 15 assertions, 0 failures, 0 errors, 5 skips
+```
+
+### Runtime Comparison
+
+The default full suite took about 193.8 seconds. The skip-flag suite took about 31.5 seconds, reducing this run by roughly 162.3 seconds while making the skipped exact-solver tests visible in Minitest output.

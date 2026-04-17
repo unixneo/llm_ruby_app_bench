@@ -96,6 +96,9 @@ bin/rails db:seed
 # Run tests
 bin/rails test
 
+# Fast development test run without expensive Held-Karp exact solver tests
+SKIP_HELD_KARP=1 bin/rails test
+
 # Start server
 bin/rails server
 ```
@@ -123,6 +126,18 @@ Current navigation:
 3. **Record result:** Coder writes to `RESULTS.md`
 4. **Log errors:** Document architect/coder errors in respective files
 5. **PI interpretation:** View results in UI, classify differences
+
+### Test Runtime
+
+Held-Karp exact solver tests are intentionally part of the default suite because they verify the exact TSP implementation and versioned attempt generation.
+
+For fast iteration on non-algorithmic changes such as UI, routes, or controller work, set:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+`SKIP_HELD_KARP=true` is also accepted. Do not use this flag for CI, release checks, or final prompt verification; plain `bin/rails test` remains the required full validation command.
 
 ### Current Fixtures
 

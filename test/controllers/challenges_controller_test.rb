@@ -18,7 +18,9 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "2 algorithms"
     assert_includes response.body, "2 attempts"
     assert_includes response.body, "Knapsack Problem"
-    assert_includes response.body, "Graph Coloring"
+    refute_includes response.body, "Graph Coloring"
+    assert_includes response.body, "Shortest Path Algorithms"
+    assert_includes response.body, "Pending Verification"
     assert_includes response.body, "Coming Soon"
   end
 

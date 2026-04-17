@@ -437,3 +437,116 @@ Research documentation must distinguish:
 Future prompts should not call OR-Tools guided local search exact unless an explicit proof/certificate or exact solver mode is identified.
 
 **Classification:** Major reference-validation error.
+
+
+---
+
+## CLE0008 - Algorithm Selection Without Reference Gem Verification
+
+**Date:** 2026-04-17  
+**Project:** llm_ruby_app_bench  
+**Phase:** Planning next algorithm family after TSP completion (P0001-P0017)  
+**Prompts Affected:** P0016 (UI placeholder creation), Current planning session
+
+**Error:**
+
+1. **P0016:** Added UI placeholders for "Knapsack Problem", "Graph Coloring", and "Shortest Path Algorithms" without first verifying Ruby reference gem availability
+2. **Current session:** Suggested Graph Coloring and Knapsack as next algorithm families without checking for Ruby gems first
+
+**Impact:**
+
+Violated core methodology principle: **"The math is the reviewer"** requires a reference implementation for benchmark validation. Creating UI placeholders or suggesting algorithms without gem verification creates false commitments to potentially infeasible work.
+
+**Root Cause:**
+
+Treated algorithm selection as a creative/interesting problem rather than a constrained search problem. The correct workflow is:
+
+1. Survey RubyGems for algorithm categories with mature reference implementations
+2. Filter to algorithms suitable for benchmarking (deterministic, verifiable)
+3. Present validated options to PI
+4. PI selects based on research interest
+
+Instead, the workflow was:
+
+1. "Graph coloring would be visually compelling!" ❌
+2. "Oh wait, is there a gem?" ← Backwards
+
+**Context:**
+
+TSP worked because `tsp_solver` gem existed by luck. The success pattern was not generalized into a required pre-implementation step.
+
+**Correction Needed:**
+
+C005 - Algorithm selection protocol:
+- BEFORE suggesting any algorithm for the next family
+- BEFORE creating UI placeholders
+- MUST complete RubyGems survey
+- MUST verify reference implementation exists
+- ONLY THEN present to PI for selection
+
+**Attribution:** Claude (Architect) error during both P0016 creation and current planning
+
+**Classification:** Major methodology violation - scope expansion without constraint compliance
+
+
+---
+
+## CLE0009 - New Chat Session Context Loss and Complete Workflow Violation
+
+**Date:** 2026-04-17  
+**Project:** llm_ruby_app_bench  
+**Phase:** New chat session startup
+
+**Error:**
+
+At the start of this chat session, PI explicitly provided startup instructions:
+
+> "The key files to reference when you return:
+> * `PLAN.md` - Frozen research charter
+> * `CORRECTIONS.md` - C001-C004 governance rules
+> * `PROMPTS.md` - P0001-P0017 completed
+> * `RESULTS.md` - R0001-R0017 completed
+> * `CLAUDE_ERRORS.md` - CLE0001-CLE0007
+> * `CODEX_ERRORS.md` - CE0001-CE0008"
+
+**What I did instead:**
+
+1. **Ignored the directive completely** - Did not read any .md files before engaging
+2. **Suggested algorithms without gem verification** - Repeated CLE0008 pattern immediately
+3. **Violated three-role separation** - Started writing code directly (that's Codex's role)
+4. **Ignored CORRECTIONS.md** - C003/C004 require checkpoint flagging before decisions
+5. **Treated chat continuation as blank slate** - Failed to restore project context
+
+**Impact:**
+
+- Wasted 70+ exchanges before recognizing the workflow violation
+- Nearly committed code directly instead of writing prompts
+- Would have repeated CLE0008 (algorithm selection without gem survey)
+- Violated fundamental architect/coder separation from PLAN.md
+
+**Root Cause:**
+
+New chat sessions lose all context. When PI provides explicit restoration instructions ("read these files"), those instructions must be executed FIRST before any engagement.
+
+**Correct Session Startup Sequence:**
+
+1. **Read directive** - PI says "read these files"
+2. **Execute immediately** - Read all specified files in order
+3. **Confirm understanding** - "Files read, context restored, ready"
+4. **THEN engage** - Only after context is loaded
+
+**What actually happened:**
+
+1. PI says "read these files"
+2. Claude: "Perfect plan! Graph coloring would be cool!" ❌
+3. Continue for 70 exchanges before recognizing violation
+
+**Classification:** Critical session initialization failure - complete disregard of explicit directives
+
+**Required Correction:**
+
+C006 - New session initialization protocol:
+- When PI provides file reading instructions at session start
+- MUST read all specified files BEFORE any other engagement
+- MUST confirm context restoration
+- ONLY THEN proceed with research tasks

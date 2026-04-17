@@ -1,5 +1,7 @@
 require "test_helper"
 
+# Set SKIP_HELD_KARP=1 or SKIP_HELD_KARP=true to skip expensive exact solver tests.
+# By default, all Held-Karp tests run.
 class TspSolverTest < ActiveSupport::TestCase
   test "returns numeric tour length" do
     result = TspSolver.new.solve(TspFixtures.problem_for(TspFixtures.square_4))
@@ -17,6 +19,8 @@ class TspSolverTest < ActiveSupport::TestCase
   end
 
   test "held karp returns metadata fields matching reference result structure" do
+    skip_held_karp_if_requested
+
     result = TspSolver.new(algorithm: :held_karp).solve(TspFixtures.problem_for(TspFixtures.square_4))
 
     assert_equal [:tour, :length, :source, :objective_value, :scale], result.to_h.keys
@@ -48,6 +52,8 @@ class TspSolverTest < ActiveSupport::TestCase
   end
 
   test "auto uses held karp for random ten city fixture" do
+    skip_held_karp_if_requested
+
     result = TspSolver.new.solve(TspFixtures.problem_for(TspFixtures.random_10))
 
     assert_equal "held-karp", result.source
@@ -58,6 +64,8 @@ class TspSolverTest < ActiveSupport::TestCase
   end
 
   test "auto uses held karp for random twenty city fixture" do
+    skip_held_karp_if_requested
+
     result = TspSolver.new.solve(TspFixtures.problem_for(TspFixtures.random_20))
 
     assert_equal "held-karp", result.source
@@ -75,6 +83,8 @@ class TspSolverTest < ActiveSupport::TestCase
   end
 
   test "solves world city fixture with held karp" do
+    skip_held_karp_if_requested
+
     result = TspSolver.new(algorithm: :held_karp).solve(TspFixtures.problem_for(TspFixtures.world_cities_13))
 
     assert_equal "held-karp", result.source
@@ -91,6 +101,8 @@ class TspSolverTest < ActiveSupport::TestCase
   end
 
   test "held karp matches brute force on eight city fixture" do
+    skip_held_karp_if_requested
+
     problem = TspFixtures.problem_for(TspFixtures.octagon_8)
     brute_force = TspSolver.new(algorithm: :brute_force).solve(problem)
     held_karp = TspSolver.new(algorithm: :held_karp).solve(problem)

@@ -227,3 +227,53 @@ P0001 requested generic "pages" without specifying root routing or implying TSP 
 **Classification:** Codex implementation error - made architectural design decision (which algorithm owns root route) without authorization, violating multi-algorithm intent from PLAN.md.
 
 **Severity:** Major (not critical) - creates technical debt and tight coupling, but doesn't break functionality or produce wrong results.
+
+
+---
+
+## CE0009 - Unauthorized Vendor Bundle Configuration
+
+**Date:** 2026-04-17  
+**Commit:** d72a988 (Initial commit)  
+**Phase:** Project initialization
+
+**Error:**
+
+Codex configured `.bundle/config` with `BUNDLE_PATH: "vendor/bundle"` in the initial commit without PI authorization or requirement.
+
+**Impact:**
+
+1. **Reboot fragility:** Native extensions compiled in vendor/bundle become incompatible after Mac reboot
+2. **Diverges from project standards:** Other Rails projects in `/Users/timbass/rails/` use system gems
+3. **Requires manual intervention:** Every reboot requires `rm -rf vendor/bundle && bundle install`
+4. **Not requested:** PI never asked for gem isolation or vendor bundling
+
+**Root Cause:**
+
+Codex made an architectural decision (gem installation location) without PI approval. This is a C003 violation - should have flagged as architectural checkpoint requiring PI approval.
+
+**Evidence:**
+
+```bash
+$ git show d72a988:.bundle/config
+---
+BUNDLE_PATH: "vendor/bundle"
+```
+
+Error manifests after reboot as:
+```
+Could not find puma-8.0.0 ... linked to incompatible 
+/Users/timbass/.rbenv/versions/3.2.2/lib/libruby.3.2.dylib
+```
+
+**Correction Required:**
+
+1. Remove `.bundle/config` from repository
+2. Remove `vendor/bundle` directory
+3. Add `.bundle/` to `.gitignore`
+4. Reinstall gems using system-wide location (default rbenv behavior)
+5. Document that project uses system gems like all other Rails projects
+
+**Classification:** Major architectural error - unauthorized configuration decision with recurring operational impact
+
+**Related:** Violates C003 (architectural checkpoints) - gem installation location is an architectural decision affecting project portability and maintenance
