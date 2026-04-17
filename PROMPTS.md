@@ -271,3 +271,119 @@ Good solutions for VRP, though not guaranteed optimal. OR-Tools reference will l
 **Approved for implementation in P0020.**
 
 ---
+
+---
+
+# P0021: Assignment Problem - Algorithm Selection
+
+**Date:** 2026-04-17  
+**Status:** Awaiting PI approval  
+**Architect:** Claude
+
+## Problem Description
+
+**Assignment Problem (Linear Sum Assignment):**
+- Given: n workers, n tasks, cost matrix C[i][j] for assigning worker i to task j
+- Goal: Find one-to-one assignment minimizing total cost
+- Each worker assigned to exactly one task
+- Each task assigned to exactly one worker
+- Complexity: Polynomial O(n³) with Hungarian algorithm
+
+## Reference Implementation
+
+**Gem:** OR-Tools (already in project)
+**Module:** `ORTools::LinearSumAssignment`
+**API:** `add_arc_with_cost(worker, task, cost)`, `solve()`, `optimal_cost()`
+
+## Algorithm Options
+
+### Option A: Hungarian Algorithm (Exact, Polynomial)
+
+**Description:** Classic combinatorial optimization algorithm
+**Complexity:** O(n³)
+**Quality:** Always finds optimal solution
+**Implementation:** ~150-200 lines (augmenting path + dual updates)
+
+**Advantages:**
+- Exact polynomial algorithm (different complexity class from TSP/VRP)
+- Well-defined correctness criterion (optimal cost match)
+- Tests corrections on non-NP-hard problem
+- Good UI potential (assignment matrix visualization)
+
+**Disadvantages:**
+- More complex than greedy heuristic
+- Requires understanding of augmenting paths and dual variables
+
+
+### Option B: Greedy Heuristic (Fast, Approximate)
+
+**Description:** Repeatedly assign minimum-cost worker-task pair
+**Complexity:** O(n² log n)
+**Quality:** Often near-optimal, not guaranteed optimal
+
+**Advantages:**
+- Simpler implementation (~50 lines)
+- Fast execution
+- Easy to understand and verify
+
+**Disadvantages:**
+- Not optimal (research question becomes "how good is greedy?")
+- Less interesting algorithmically
+- Doesn't test corrections on complex algorithm
+
+### Option C: Auction Algorithm (Exact, Different Approach)
+
+**Description:** Market-based iterative approach with bidding
+**Complexity:** O(n³) typical, can be faster in practice
+**Quality:** Finds optimal solution
+
+**Advantages:**
+- Different algorithmic paradigm (market-based vs graph-based)
+- Interesting alternative to Hungarian
+
+**Disadvantages:**
+- Less common reference implementation
+- Requires understanding auction/bidding mechanics
+- Similar implementation complexity to Hungarian
+
+
+## Recommendation
+
+**Option A: Hungarian Algorithm**
+
+**Rationale:**
+1. ✅ **Tests corrections on exact polynomial algorithm** - Different from NP-hard TSP/VRP
+2. ✅ **Clear correctness criterion** - Optimal cost must match OR-Tools
+3. ✅ **Algorithmic depth** - Complex enough to test LLM on matching theory
+4. ✅ **Good UI potential** - Assignment matrix, bipartite graph visualization
+5. ✅ **Standard algorithm** - Well-documented, clear reference materials
+
+**Comparison with VRP:**
+- VRP: NP-hard, heuristic (Clarke-Wright), approximate solution
+- Assignment: P (polynomial), exact algorithm, optimal solution guaranteed
+
+This provides diversity in complexity classes for the paper.
+
+## Research Questions
+
+If Hungarian algorithm implemented:
+- Can LLM correctly implement augmenting path algorithm?
+- Will it handle dual variable updates correctly?
+- How will it handle edge cases (zero costs, negative costs, unbalanced assignments)?
+- Does governance framework work for exact algorithms vs heuristics?
+
+## Fixtures Needed
+
+**5 test cases:**
+1. Small 3x3 (manual verification possible)
+2. Symmetric 5x5 (workers and tasks have similar structure)
+3. Asymmetric 8x8 (diverse cost range)
+4. Sparse 10x10 (many high-cost/impossible assignments)
+5. Dense 15x15 (all assignments reasonable)
+
+## Awaiting PI Decision
+
+**Options:** A (Hungarian), B (Greedy), or C (Auction)
+
+**Please approve one option to proceed with P0021.**
+
