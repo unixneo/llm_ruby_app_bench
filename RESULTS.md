@@ -1569,3 +1569,75 @@ Output:
 ### Runtime Comparison
 
 The default full suite took about 193.8 seconds. The skip-flag suite took about 31.5 seconds, reducing this run by roughly 162.3 seconds while making the skipped exact-solver tests visible in Minitest output.
+
+---
+
+## R0020 - P0020 Knapsack Reference Gem Blocker
+
+**Date:** 2026-04-17  
+**Codex Status:** Blocked before implementation
+
+### Summary
+
+P0020 requested a 0/1 Knapsack dynamic programming implementation compared against the `knapsack` gem reference.
+
+Codex stopped before implementing the candidate solver because the specified reference gem premise failed verification. The installed `knapsack` gem v4.0.0 is not a knapsack optimization algorithm library. It is a CI test-splitting tool.
+
+### Reference Gem Verification
+
+Verification command:
+
+```bash
+ruby -e 'require "knapsack"; spec=Gem.loaded_specs["knapsack"]; puts spec.summary; puts spec.homepage; puts Knapsack.constants.sort'
+```
+
+Output:
+
+```text
+Knapsack splits tests across CI nodes and makes sure that tests will run comparable time on each node.
+https://github.com/KnapsackPro/knapsack
+Adapters
+Allocator
+AllocatorBuilder
+Config
+Distributors
+Logger
+Presenter
+Report
+Runners
+TaskLoader
+Tracker
+VERSION
+```
+
+This means the gem cannot serve as "the math is the reviewer" reference for P0020.
+
+### C004/C005 Stop
+
+Under C004 and C005, Codex cannot substitute a different reference gem or implement an unverified reference path without PI approval.
+
+The temporary dependency addition was reverted:
+
+```text
+Gemfile and Gemfile.lock contain no knapsack dependency changes.
+```
+
+Bundle verification after rollback:
+
+```bash
+bundle check
+```
+
+Output:
+
+```text
+The Gemfile's dependencies are satisfied
+```
+
+### Required Next Step
+
+P0020 needs an architect correction before implementation:
+
+- identify a real Ruby 0/1 knapsack algorithm reference gem, or
+- approve a different validation approach, such as manual exact fixtures plus independent implementation review, or
+- select a different algorithm family with a verified reference implementation.
