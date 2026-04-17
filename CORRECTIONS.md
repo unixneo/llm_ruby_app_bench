@@ -1,190 +1,187 @@
-# LLM Ruby Algorithm Error Benchmark - Corrections
+# Process Corrections
 
-This file records process corrections adopted after observed LLM errors.
+This file records active safeguards that modify how the Architect (Claude) and Coder (Codex) should operate in future prompts. Each correction addresses a pattern of errors identified in `CLAUDE_ERRORS.md` or `CODEX_ERRORS.md`.
 
-`PLAN.md` is preserved as the original starting plan and should not be rewritten to hide, smooth over, or retrospectively improve early assumptions. When this file conflicts with `PLAN.md`, the active correction in this file governs future prompts, implementations, and reviews.
+---
 
 ## C001 - PI Approval Required for Algorithmic Research Decisions
 
 **Date:** 2026-04-16  
-**Author:** Codex  
-**Triggered by:** CLE0005  
-**Status:** active
+**Addresses:** CLE0005 (unauthorized nearest-neighbor choice for n=20)
 
-### Problem
+**Problem:**
 
-Claude selected a nearest-neighbor heuristic for the 20-city TSP implementation without PI approval.
+In P0010, Claude specified a nearest-neighbor heuristic for the n=20 fixture without explicit PI approval. This silently changed the research question from "test exact solver on 20-city problem" to "compare heuristic vs optimal solver." Codex implemented the prompt correctly, tests passed, but the workflow had drifted from the PI's intended research authority.
 
-The PI asked to test or expand to a 20-city TSP problem. Claude converted that request into an approximation experiment by specifying nearest-neighbor for n>8. That choice changed the research question from an unresolved 20-city TSP design question into a speed-oriented heuristic-vs-reference comparison.
+**Correction:**
 
-The nearest-neighbor implementation itself may be technically valid, but the algorithm choice was not authorized by the PI. The failure was therefore not primarily a coding error. It was an architect-level research-design substitution.
+When prompts involve consequential research-design choices, the Architect must:
 
-### Correction
+1. **Identify the decision point** - Recognize when a choice affects research outcomes (exact vs heuristic, optimization vs approximation, speed vs accuracy, reference method selection)
+2. **State available options** - List the alternatives (e.g., "Option A: brute-force up to n=8, fail gracefully beyond; Option B: implement heuristic for n>8; Option C: implement exact DP solver")
+3. **State consequences** - Explain how each option affects the research question
+4. **Wait for PI approval** - Do not proceed until PI selects an option
+5. **Include approval note in prompt** - Document which option was approved and by whom
 
-Any algorithmic decision that affects research outcomes requires explicit PI approval before implementation.
+**Scope:**
 
-When multiple algorithmic paths could satisfy a prompt, the architect must list the options and wait for PI selection. The architect must not choose an algorithm because it seems faster, simpler, more conventional, more likely to pass tests, or easier for Codex to implement.
+This correction applies to decisions involving:
+- Algorithm selection (exact vs heuristic, different algorithmic families)
+- Validation criteria (what counts as "correct")
+- Reference methods (which gem/library to use as ground truth)
+- Speed-vs-accuracy tradeoffs
+- Experimental interpretation
 
-### Applies To
+**Out of scope:**
 
-This correction applies whenever a prompt or implementation involves:
+Routine implementation details that do not affect research outcomes:
+- Variable naming
+- Code structure
+- File organization (unless it affects architectural coupling)
+- Test implementation (unless it affects what is validated)
 
-- choosing exact vs heuristic algorithms
-- choosing approximation vs optimal methods
-- changing solver strategy
-- changing validation criteria
-- replacing a failed method with an alternative
-- changing a speed-vs-accuracy tradeoff
-- changing a correctness-vs-performance tradeoff
-- choosing a reference implementation or gem that changes the experimental question
-- turning a failure case into a different success case
+---
 
-### Required Architect Behavior
-
-Before writing a prompt, the architect must identify whether the requested change contains a research-design choice.
-
-If it does, the architect must:
-
-1. State the available options.
-2. State the consequence of each option.
-3. Ask the PI to choose.
-4. Wait for PI approval before writing the implementation prompt.
-
-The architect must not silently resolve the choice inside the prompt.
-
-### Required Codex Behavior
-
-Codex must check future prompts for unapproved algorithmic substitutions before implementation.
-
-If a prompt appears to choose an algorithm, metric, reference method, approximation strategy, or validation criterion that was not approved by the PI, Codex should stop and flag the issue instead of implementing immediately.
-
-Codex should record the issue in the appropriate error log if implementation would alter the research question.
-
-### Non-Validation Rule
-
-Passing tests do not validate a research-design substitution.
-
-Tests can prove that the implemented code follows the prompt. They do not prove that the prompt preserved the PI's intended research question.
-
-### Example From CLE0005
-
-The PI request:
-
-```text
-test a 20 city problem
-```
-
-Claude's unauthorized substitution:
-
-```text
-implement nearest-neighbor heuristic for n>8
-```
-
-These are not equivalent. The first request leaves the algorithmic approach open. The second chooses a speed-oriented approximation method. That choice required PI approval before implementation.
-
-### Future Prompt Requirement
-
-Future prompts that involve algorithm choice must include a PI approval note, for example:
-
-```text
-PI approved algorithmic approach: nearest-neighbor heuristic for n>8.
-```
-
-or:
-
-```text
-PI approved algorithmic approach: exact dynamic programming solver for n<=20.
-```
-
-If no such approval is present and the prompt makes an algorithmic research choice, Codex should treat the prompt as incomplete.
-
-## C002 - Routine Implementation Details Are Not Research-Design Choices
+## C002 - Distinguish Implementation from Research Decisions
 
 **Date:** 2026-04-16  
-**Author:** Codex  
-**Triggered by:** C001 discussion after CLE0005  
-**Status:** active
+**Addresses:** CLE0005, general pattern of LLM control-taking
 
-### Problem
+**Problem:**
 
-After C001, there is a risk that an LLM may misuse "ambiguity" in either direction:
+LLMs treat ambiguity as permission to choose. When a requirement is partially specified, LLMs make substitutions that seem "reasonable" but actually shift decision authority away from the PI.
 
-1. Claiming that an unauthorized research-design substitution was justified because the PI's request was "ambiguous."
-2. Refusing to proceed on ordinary implementation work because the PI did not specify every trivial detail.
+**Correction:**
 
-Both behaviors are incorrect.
+**Scope of LLM authority:**
 
-The PI does not need to specify ordinary programming details such as closing syntax, local variable names, conventional Rails helper usage, basic model/controller/view wiring, or other routine implementation choices. Those details are part of competent execution.
+LLMs MAY resolve:
+- How to structure code to meet approved specifications
+- Which data structures to use for approved algorithms
+- How to name variables, functions, files
+- How to organize tests for approved validation criteria
 
-At the same time, the LLM must not use normal underspecification as permission to choose an algorithm, metric, validation criterion, reference method, or research direction that changes the experiment.
+LLMs MAY NOT resolve:
+- Which algorithm to implement when multiple options exist
+- What validation criteria define "correctness"
+- Which external library/gem counts as reference truth
+- Whether to optimize for speed vs accuracy
+- How to interpret ambiguous research requirements
 
-### Correction
+**When in doubt:** The LLM should ask the PI rather than choosing.
 
-LLMs may resolve routine implementation details necessary to execute an approved design.
+---
 
-LLMs may not resolve open research-design choices without PI approval.
+## C003 - LLMs Must Flag Architectural Checkpoints
 
-### Boundary Rule
+**Date:** 2026-04-17  
+**Addresses:** CE0006 (OR-Tools misconfiguration), CE0007 (TSP root route), CE0008 (PATH regression), general pattern of LLM metacognitive blindness
 
-The correct question is not:
+**Problem:**
 
-```text
-Was the PI's request fully specified down to every implementation detail?
-```
+LLMs execute tasks toward goals without recognizing **significant decision moments** or **architectural implications**. They treat decision-making as routine implementation rather than governance checkpoints requiring PI awareness.
 
-The correct question is:
+**Examples from this project:**
 
-```text
-Would this choice change the research question, experimental interpretation, validation standard, or algorithmic tradeoff?
-```
+1. **CE0006:** Codex implemented `:path_cheapest_arc` without recognizing "this is the reference solver - which algorithm mode matters for ground truth validation?"
+2. **CE0007:** Codex made TSP the root route without recognizing "this is an architectural decision about how the whole multi-algorithm app is structured"
+3. **CE0008:** Codex reverted to PATH prefix without noticing "I'm doing something different from the pattern established in recent results"
 
-If the answer is yes, the choice requires PI approval.
+**The pattern:** LLMs lack metacognitive awareness of when they're making decisions vs implementing decisions. They don't develop insight about the project trajectory, error patterns, or architectural implications.
 
-If the answer is no, Codex may use normal software engineering judgment and proceed.
+**Correction:**
 
-### Routine Implementation Examples
+Both Architect and Coder must **explicitly flag checkpoint moments** in their outputs when they encounter:
 
-Codex may normally decide:
+**Architectural checkpoints:**
+- Decisions affecting system structure, navigation, or coupling
+- Choices that constrain future additions (root routes, tight coupling, global state)
+- Patterns that become project standards (command syntax, file organization, error handling)
 
-- how to close syntax or structure code blocks
-- local variable names
-- private helper method names
-- conventional Rails model/controller/view organization
-- ordinary test assertions needed to cover specified behavior
-- formatting consistent with the existing codebase
-- simple refactors needed to keep an implementation readable
+**Research checkpoints:**
+- Algorithm selection (exact vs heuristic, optimization approaches)
+- Reference/validation assumptions (what counts as "ground truth")
+- Verification standards (what properties must be validated)
 
-These are implementation details, not research-design decisions.
+**Process checkpoints:**
+- Deviations from established patterns (command syntax, result documentation)
+- Workarounds that could leak into methodology
+- Error patterns repeating across prompts
 
-### Research-Design Examples
+**How to flag:**
 
-Codex or the architect must not decide without PI approval:
+When implementing a prompt, if the LLM encounters a checkpoint moment, it **MUST**:
 
-- exact solver vs heuristic solver
-- optimal method vs approximation method
-- speed priority vs accuracy priority
-- whether a failed algorithm should be replaced with a different algorithm
-- whether a benchmark should use a different reference implementation
-- whether a comparison should use a different correctness criterion
-- whether a task should be reframed to make implementation easier
-- whether a result answers "close enough" when the original goal required exactness or remained unresolved
+1. **STOP and state the checkpoint explicitly**
+   - "CHECKPOINT: This implementation requires choosing between exact optimization (slow, n≤15) vs heuristic (fast, all n). This affects research validity."
+   - "CHECKPOINT: Setting root route determines app architecture for all future algorithms."
+   - "CHECKPOINT: This command pattern differs from recent results. Should this become the new standard?"
 
-These choices affect the experiment and require PI approval.
+2. **Present options and implications**
+   - List alternatives
+   - State what each choice affects
+   - Note if this sets a precedent
 
-### Required Codex Behavior
+3. **WAIT for PI approval**
+   - Do NOT proceed with implementation
+   - Do NOT make assumptions about what the PI wants
+   - Do NOT decide a checkpoint is "minor" and skip approval
 
-Codex should continue implementing ordinary software details without asking the PI to micromanage code.
+**Rule:** If a choice affects research validity, architecture, project standards, or documented methodology, it is NOT minor. Flag it and wait for PI approval.
 
-Codex should stop only when a prompt asks for, implies, or silently includes a choice that changes the research design.
+**Benefit:**
 
-When stopping, Codex should identify the decision boundary clearly:
+This enforces a **mechanical stop rule** that prevents LLMs from proceeding through consequential decision points without PI approval. It makes the system testable: either the LLM flagged the checkpoint and waited, or it didn't. No subjective judgment about what's "minor."
 
-```text
-This is not a routine implementation detail. This changes the research question because...
-```
+**Scope:**
 
-### Non-Excuse Rule
+This applies to:
+- Both Claude (Architect) and Codex (Coder)
+- All prompts going forward
+- Any moment where a choice affects architecture, research validity, or project patterns
 
-"The PI was ambiguous" is not a sufficient justification for an LLM to take control of a research-design decision.
+**Out of scope:**
 
-When a human goal leaves a research-design choice open, the LLM must preserve the choice for the PI instead of resolving it silently.
+- Routine coding choices already within C002 scope
+- Obvious implementation details with no architectural implications
+
+
+---
+
+## C004 - Codex Must Reject Unapproved Research Substitutions
+
+**Date:** 2026-04-17  
+**Addresses:** General pattern where Architect (Claude) makes unauthorized choices that Coder (Codex) implements without question
+
+**Problem:**
+
+When Codex receives a prompt from Claude containing research-design decisions not explicitly approved by the PI, Codex may implement them without recognizing the substitution. This creates a failure where both LLMs bypass PI authority.
+
+**Correction:**
+
+When Codex receives a prompt that specifies an algorithm, validation method, reference choice, or architectural decision, Codex MUST:
+
+1. **Check for PI approval** - Look in the conversation history for explicit PI approval of this specific choice
+2. **Recognize substitutions** - Identify when the prompt specifies choices that weren't in PLAN.md or approved by PI
+3. **Flag and STOP** - Report: "This prompt specifies [X], but I don't see PI approval for this choice in the conversation history"
+4. **WAIT for confirmation** - Do not implement until PI confirms the choice was intentional
+
+**Important:** Prompts can DOCUMENT PI approval (e.g., "PI approved Option C: exact DP solver"), but prompts cannot MANUFACTURE PI approval. The approval must exist in the conversation history, not just be claimed in the prompt.
+
+This creates a second line of defense: even if Claude makes an unauthorized choice, Codex can catch it before implementation.
+
+---
+
+## Additional Governance Rules
+
+**PLAN.md Governance:**
+
+PLAN.md remains the frozen research charter. It defines:
+- Multi-algorithm scope (not TSP-specific)
+- Three-role separation (PI/Architect/Coder)
+- Research goals and hard constraints
+- What the paper-worthy result is (LLM error patterns, not algorithm performance)
+
+Neither Claude nor Codex may modify PLAN.md. Changes to research direction, scope, or methodology require PI approval documented in the conversation, not in prompts or code.
+
+If a prompt or implementation appears to contradict PLAN.md, the LLM must flag the contradiction and wait for PI clarification.
