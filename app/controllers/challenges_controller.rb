@@ -12,6 +12,12 @@ class ChallengesController < ApplicationController
       algorithm_count: @vrp_challenge ? Attempt.where(challenge: @vrp_challenge).distinct.count(:algorithm_version) : 0,
       attempt_count: @vrp_challenge ? Attempt.where(challenge: @vrp_challenge).count : 0
     }
+    @assignment_challenge = Challenge.find_by(name: "Assignment Problem")
+    @assignment_stats = {
+      fixture_count: AssignmentFixtures.all.count,
+      algorithm_count: @assignment_challenge ? Attempt.where(challenge: @assignment_challenge).distinct.count(:algorithm_version) : 0,
+      attempt_count: @assignment_challenge ? Attempt.where(challenge: @assignment_challenge).count : 0
+    }
     # Future algorithm families must have verified Ruby reference gems.
     # C005: Algorithm selection requires RubyGems survey (see RUBYGEMS_SURVEY.md).
     # Only add placeholders after gem verification is complete.
@@ -31,6 +37,8 @@ class ChallengesController < ApplicationController
       redirect_to attempts_path
     elsif challenge.name == "Vehicle Routing Problem"
       redirect_to vrp_attempts_path
+    elsif challenge.name == "Assignment Problem"
+      redirect_to assignment_attempts_path
     else
       redirect_to challenges_path, alert: "No attempt index is available for this challenge yet."
     end

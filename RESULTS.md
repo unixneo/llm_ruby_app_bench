@@ -1760,3 +1760,128 @@ Finished in 213.357823s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+---
+
+## R0021 - P0021 Assignment Problem Implementation
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented P0021 as a Linear Sum Assignment benchmark.
+
+Implemented:
+
+- `AssignmentProblem` Active Record model and migration for persisted fixtures
+- `AssignmentFixtures` with five deterministic fixtures from P0021
+- `AssignmentSolver` pure Ruby Hungarian algorithm candidate
+- `GemAssignmentSolver` OR-Tools `LinearSumAssignment` reference wrapper
+- `AssignmentSolutionValidator` for one-to-one assignment and cost checks
+- `AssignmentResultComparison` for optimality/cost comparisons
+- `AssignmentAttemptRunner` to persist `Attempt` records under prompt `P0021`
+- `/assignment/attempts` route scope using the existing attempt UI
+- Assignment challenge card on the algorithm index
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and assignment attempt display
+
+### Governance Notes
+
+P0021 documents PI approval for:
+
+```text
+Option A - Hungarian Algorithm
+```
+
+Candidate source/version:
+
+```text
+hungarian
+hungarian-v1
+```
+
+Reference version:
+
+```text
+or-tools-linear-sum-assignment-v1
+```
+
+Reference API verification found one prompt snippet issue: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
+
+The prompt's manual note for `assignment_tiny_3x3` listed total cost 10, but OR-Tools and the Hungarian implementation both find a better assignment:
+
+```text
+worker 0 -> task 1 cost 2
+worker 1 -> task 0 cost 6
+worker 2 -> task 2 cost 1
+total cost 9
+```
+
+### Seeded Results
+
+After seeding, five Assignment attempts were recorded:
+
+```text
+fixture | status | candidate cost | OR-Tools cost | difference | candidate assignment | reference assignment
+assignment_asymmetric_8x8 | exact_match | 144 | 144 | 0.0 | [7, 4, 2, 3, 0, 6, 1, 5] | [7, 4, 2, 3, 0, 6, 1, 5]
+assignment_dense_15x15 | exact_match | 268 | 268 | 0.0 | [0, 4, 3, 2, 10, 1, 5, 12, 8, 7, 11, 14, 6, 9, 13] | [0, 4, 7, 2, 10, 13, 5, 8, 12, 11, 3, 14, 6, 9, 1]
+assignment_small_5x5 | exact_match | 82 | 82 | 0.0 | [0, 3, 2, 4, 1] | [0, 3, 2, 4, 1]
+assignment_sparse_10x10 | exact_match | 1170 | 1170 | 0.0 | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9] | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9]
+assignment_tiny_3x3 | exact_match | 9 | 9 | 0.0 | [1, 0, 2] | [1, 0, 2]
+```
+
+The dense 15x15 fixture has different candidate and reference assignments with the same optimal cost. It is correctly recorded as `exact_match` because assignment optimality is cost-based and multiple optimal assignments may exist.
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused P0021 tests:
+
+```bash
+bin/rails test test/models/assignment_problem_test.rb test/services/assignment_solver_test.rb test/services/gem_assignment_solver_test.rb test/services/assignment_solution_validator_test.rb test/services/assignment_result_comparison_test.rb test/services/assignment_attempt_runner_test.rb test/controllers/assignment_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+21 runs, 144 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+63 runs, 431 assertions, 0 failures, 0 errors, 13 skips
+Finished in 22.864632s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+63 runs, 665 assertions, 0 failures, 0 errors, 0 skips
+Finished in 49.686678s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.

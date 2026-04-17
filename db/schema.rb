@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_16_000006) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_17_000007) do
+  create_table "assignment_problems", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "workers", null: false
+    t.integer "tasks", null: false
+    t.text "cost_matrix", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_assignment_problems_on_name", unique: true
+  end
+
   create_table "attempts", force: :cascade do |t|
     t.string "prompt_id", null: false
     t.integer "challenge_id", null: false

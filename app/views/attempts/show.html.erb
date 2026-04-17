@@ -1,5 +1,11 @@
 <% content_for :title, "#{@attempt.prompt_id} #{@attempt.fixture_name}" %>
-<% back_to_attempts_path = @attempt.route_path_name == :vrp ? vrp_attempts_path : attempts_path %>
+<% back_to_attempts_path = if @attempt.route_path_name == :vrp
+  vrp_attempts_path
+elsif @attempt.route_path_name == :assignment
+  assignment_attempts_path
+else
+  attempts_path
+end %>
 
 <div class="page-header">
   <div>

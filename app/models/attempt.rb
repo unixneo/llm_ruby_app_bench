@@ -23,6 +23,10 @@ class Attempt < ApplicationRecord
     "infeasible" => {
       label: "Infeasible",
       badge_class: "badge-fail"
+    },
+    "reference_failed" => {
+      label: "Reference failed",
+      badge_class: "badge-fail"
     }
   }.freeze
 
@@ -75,6 +79,8 @@ class Attempt < ApplicationRecord
       TspFixtures.find(fixture_name)
     elsif challenge.name == "Vehicle Routing Problem"
       VrpFixtures.find(fixture_name)
+    elsif challenge.name == "Assignment Problem"
+      AssignmentProblem.find_by(name: fixture_name)
     end
   end
 
@@ -83,15 +89,36 @@ class Attempt < ApplicationRecord
   end
 
   def distance_difference_label
-    challenge.name == "Vehicle Routing Problem" ? "Distance Difference" : "Length Difference"
+    case challenge.name
+    when "Vehicle Routing Problem"
+      "Distance Difference"
+    when "Assignment Problem"
+      "Cost Difference"
+    else
+      "Length Difference"
+    end
   end
 
   def candidate_route_label
-    challenge.name == "Vehicle Routing Problem" ? "Candidate Routes" : "Candidate Tour"
+    case challenge.name
+    when "Vehicle Routing Problem"
+      "Candidate Routes"
+    when "Assignment Problem"
+      "Candidate Assignment"
+    else
+      "Candidate Tour"
+    end
   end
 
   def reference_route_label
-    challenge.name == "Vehicle Routing Problem" ? "Reference Routes" : "Gem Tour"
+    case challenge.name
+    when "Vehicle Routing Problem"
+      "Reference Routes"
+    when "Assignment Problem"
+      "Reference Assignment"
+    else
+      "Gem Tour"
+    end
   end
 
   def source_label
@@ -99,7 +126,14 @@ class Attempt < ApplicationRecord
   end
 
   def route_path_name
-    challenge.name == "Vehicle Routing Problem" ? :vrp : :tsp
+    case challenge.name
+    when "Vehicle Routing Problem"
+      :vrp
+    when "Assignment Problem"
+      :assignment
+    else
+      :tsp
+    end
   end
 
   def self.algorithm_version_for_source(source)
@@ -116,6 +150,12 @@ class Attempt < ApplicationRecord
   private
 
   def route_display(result_data)
+    if result_data.key?("assignment")
+      return result_data.fetch("assignment").each_with_index.map do |task, worker|
+        "Worker #{worker} -> Task #{task}"
+      end.join(" | ")
+    end
+
     if result_data.key?("routes")
       return result_data.fetch("routes").map.with_index do |route, index|
         "Vehicle #{index + 1}: #{node_sequence_display(route)}"

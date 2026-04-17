@@ -699,3 +699,65 @@ C007 - Completeness Verification Protocol:
 **Apology:**
 
 This was not an acceptable way to behave. I misrepresented the facts and only corrected when called out. That's a violation of trust.
+
+---
+
+# CLE0012: Manual Verification Error in Prompt Fixture
+
+**Date:** 2026-04-17  
+**Prompt:** P0021 (Assignment Problem)  
+**Severity:** Low (documentation error, not implementation error)
+
+## Error Description
+
+In P0021 prompt, the manual verification note for `assignment_tiny_3x3` stated:
+
+```
+Expected: assign worker 0→task 1 (cost 2), worker 1→task 2 (cost 3), 
+          worker 2→task 0 (cost 5), total = 10
+```
+
+**Actual optimal solution:**
+- Worker 0 → Task 1 (cost 2)
+- Worker 1 → Task 0 (cost 6)  
+- Worker 2 → Task 2 (cost 1)
+- **Total cost: 9** (not 10)
+
+Both OR-Tools and Hungarian algorithm found cost 9 with assignment [1, 0, 2].
+
+## Root Cause
+
+Architect (Claude) manually calculated expected optimal assignment incorrectly when writing prompt fixtures. Did not verify calculation against OR-Tools before documenting.
+
+## Impact
+
+- ✅ **No implementation impact** - Codex used OR-Tools as reference, not manual note
+- ✅ **Tests passed** - Validation compared candidate vs OR-Tools, not vs manual note
+- ✅ **Correct solution found** - Both solvers agree on optimal cost 9
+
+**This error did NOT propagate to implementation because reference solver was used correctly.**
+
+## Why This Happened
+
+Manual calculation errors are easy for humans/LLMs to make on combinatorial problems. The architecture protected against this by:
+1. Using OR-Tools as authoritative reference
+2. Not embedding expected values in test assertions
+3. Comparing candidate vs reference dynamically
+
+## Correction
+
+**C001 already addresses this:** When writing prompts with fixtures, manual verification notes should be marked as "estimate" or "verify against reference."
+
+Better approach for future prompts:
+- Generate fixtures
+- Run reference solver FIRST
+- Document reference results in prompt
+- Don't trust manual calculations for verification
+
+## Pattern
+
+This is similar to CLE0007 (fixture data errors) but caught by architecture rather than causing test failures.
+
+**Status:** Self-correcting architecture prevented error propagation
+**Affected prompts:** P0021 (documentation only, not implementation)
+

@@ -24,4 +24,10 @@ Rails.application.routes.draw do
       resources :interpretations, only: [:create]
     end
   end
+
+  scope :assignment, as: :assignment, defaults: { challenge_name: "Assignment Problem" } do
+    resources :attempts, controller: "attempts", only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
+  end
 end

@@ -4,9 +4,11 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @challenge = Challenge.create!(name: "Traveling Salesman Problem")
     @vrp_challenge = Challenge.create!(name: "Vehicle Routing Problem")
+    @assignment_challenge = Challenge.create!(name: "Assignment Problem")
     create_attempt(@challenge, "fixture-brute-force-v1", "brute-force-v1")
     create_attempt(@challenge, "fixture-held-karp-v1", "held-karp-v1")
     create_attempt(@vrp_challenge, "vrp_small_5", "clarke-wright-savings-v1")
+    create_attempt(@assignment_challenge, "assignment_tiny_3x3", "hungarian-v1")
   end
 
   test "root shows algorithm agnostic challenge index" do
@@ -23,6 +25,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "5 fixtures"
     assert_includes response.body, "1 algorithm"
     assert_includes response.body, "1 attempt"
+    assert_includes response.body, "Assignment Problem"
+    assert_includes response.body, "Exact Hungarian candidate results"
     refute_includes response.body, "Knapsack Problem"
     refute_includes response.body, "Graph Coloring"
     assert_includes response.body, "Shortest Path Algorithms"
@@ -42,12 +46,22 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to vrp_attempts_url
   end
 
+  test "challenge show redirects assignment challenge to assignment attempts index" do
+    get challenge_url(@assignment_challenge)
+
+    assert_redirected_to assignment_attempts_url
+  end
+
   test "attempts index is scoped under tsp path" do
     assert_equal "/tsp/attempts", attempts_path
   end
 
   test "vrp attempts index is scoped under vrp path" do
     assert_equal "/vrp/attempts", vrp_attempts_path
+  end
+
+  test "assignment attempts index is scoped under assignment path" do
+    assert_equal "/assignment/attempts", assignment_attempts_path
   end
 
   private

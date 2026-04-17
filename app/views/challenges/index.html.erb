@@ -84,6 +84,37 @@
     <%= link_to "View Attempts", @vrp_challenge ? challenge_path(@vrp_challenge) : vrp_attempts_path, class: "btn btn-primary" %>
   </article>
 
+  <article class="algorithm-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Assignment Problem</h2>
+        <p class="muted-line">Exact Hungarian candidate results compared with OR-Tools linear sum assignment references.</p>
+      </div>
+      <span class="badge badge-pass">Active</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">Fixtures</div>
+        <div class="metric-value"><%= pluralize(@assignment_stats.fetch(:fixture_count), "fixture") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Algorithms</div>
+        <div class="metric-value"><%= pluralize(@assignment_stats.fetch(:algorithm_count), "algorithm") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value"><%= pluralize(@assignment_stats.fetch(:attempt_count), "attempt") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Status</div>
+        <div class="metric-value">Active</div>
+      </div>
+    </div>
+
+    <%= link_to "View Attempts", @assignment_challenge ? challenge_path(@assignment_challenge) : assignment_attempts_path, class: "btn btn-primary" %>
+  </article>
+
   <% @future_challenges.each do |challenge| %>
     <article class="algorithm-card algorithm-card-disabled">
       <div class="card-header">
