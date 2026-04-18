@@ -3,6 +3,8 @@
   vrp_attempts_path
 elsif @attempt.route_path_name == :assignment
   assignment_attempts_path
+elsif @attempt.route_path_name == :max_flow
+  max_flow_attempts_path
 else
   attempts_path
 end %>

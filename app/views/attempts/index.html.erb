@@ -1,11 +1,13 @@
 <% page_title = case @challenge&.name
 when "Vehicle Routing Problem" then "VRP Attempts"
 when "Assignment Problem" then "Assignment Attempts"
+when "Max Flow Problem" then "Max Flow Attempts"
 else "TSP Attempts"
 end %>
 <% attempts_path_for_scope = case @challenge&.name
 when "Vehicle Routing Problem" then vrp_attempts_path
 when "Assignment Problem" then assignment_attempts_path
+when "Max Flow Problem" then max_flow_attempts_path
 else attempts_path
 end %>
 <% content_for :title, page_title %>
@@ -39,7 +41,7 @@ end %>
       <article class="attempt-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : attempt_path(attempt)) %></h2>
+            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt))) %></h2>
             <p class="muted-line"><%= attempt.prompt_id %> · <%= attempt.challenge.name %> · <%= attempt.algorithm_version %> · <%= attempt.reference_version %></p>
           </div>
           <span class="badge <%= attempt.status_badge_class %>"><%= attempt.status_label %></span>
@@ -68,7 +70,7 @@ end %>
           </div>
         </div>
 
-        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : attempt_path(attempt)), class: "btn btn-primary" %>
+        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt))), class: "btn btn-primary" %>
       </article>
     <% end %>
   </section>

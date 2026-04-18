@@ -234,3 +234,97 @@ Applies to:
 Does not apply to:
 - TSP variants (tsp_solver gem already verified)
 - Implementation details within approved algorithm families
+
+---
+
+# C008 - UI Verification Checkpoint
+
+**Date:** 2026-04-18  
+**Addresses:** CE0010 (UI layout regression after Max Flow implementation)
+
+##Problem:**
+
+In P0022/R0022, Codex successfully implemented Max Flow functionality:
+- All tests passed (functionality correct)
+- Routes, controllers, models working
+- Database migrations successful
+
+However, the UI homepage was broken:
+- 4-card grid layout caused awkward wrapping
+- Cards not aligned properly
+- Layout looked unprofessional
+
+The code worked perfectly, but the user-facing UI was broken.
+
+## Correction:**
+
+When prompts involve UI changes (views, stylesheets, layouts), the Coder must verify visual output:
+
+1. **Start development server:** `bin/rails server`
+2. **Visit affected pages** in browser
+3. **Document what you see:**
+   - Screenshot or detailed description
+   - Report any layout issues
+   - Note responsive behavior (if applicable)
+4. **Report to Architect** if UI looks broken
+
+**Architect responsibilities:**
+- Include "UI verification" in acceptance criteria
+- Specify which pages need visual check
+- Don't rely solely on "tests pass" for UI features
+
+**PI responsibilities:**
+- Final visual inspection before marking complete
+- Catch issues LLMs miss (alignment, spacing, colors)
+
+## Scope
+
+This applies to any prompt involving:
+- View file changes (`.html.erb`, `.jsx`, etc.)
+- Stylesheet modifications
+- Layout changes
+- New UI components
+- Grid/flexbox layouts
+- Responsive design
+
+## Example Application
+
+**P0023 (next algorithm):**
+```
+SUCCESS CRITERIA:
+1. ✅ Tests pass
+2. ✅ Algorithm produces correct results  
+3. ✅ UI verification: Visit localhost:3000 and confirm algorithm card displays properly
+```
+
+**Coder checklist:**
+- [ ] Implementation complete
+- [ ] Tests passing
+- [ ] Server started
+- [ ] Visited affected pages
+- [ ] UI looks correct (or issues reported)
+
+## Why This Matters
+
+**Tests don't catch:**
+- Broken layouts
+- CSS grid issues
+- Misaligned elements
+- Poor spacing
+- Responsive breakpoints
+- Color contrast problems
+
+**LLMs naturally skip:**
+- Visual verification
+- Browser testing
+- Responsive checks
+- Cross-page consistency
+
+**Result:** Code works, users see broken UI.
+
+---
+
+**Status:** Active  
+**Applies to:** All UI-affecting prompts going forward  
+**Enforcement:** Required checkpoint in prompt templates
+

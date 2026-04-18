@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_17_000007) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_18_000008) do
   create_table "assignment_problems", force: :cascade do |t|
     t.string "name", null: false
     t.integer "workers", null: false
@@ -55,6 +55,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_17_000007) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["attempt_id"], name: "index_interpretations_on_attempt_id"
+  end
+
+  create_table "max_flow_problems", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "nodes", null: false
+    t.text "edges", null: false
+    t.integer "source", null: false
+    t.integer "sink", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_max_flow_problems_on_name", unique: true
   end
 
   create_table "prompts", force: :cascade do |t|

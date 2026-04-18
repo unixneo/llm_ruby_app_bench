@@ -1761,8 +1761,6 @@ Finished in 213.357823s
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
----
-
 ## R0021 - P0021 Assignment Problem Implementation
 
 **Date:** 2026-04-17  
@@ -1882,6 +1880,141 @@ Output:
 ```text
 63 runs, 665 assertions, 0 failures, 0 errors, 0 skips
 Finished in 49.686678s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+---
+
+## R0022 - P0022 Max Flow Problem Implementation
+
+**Date:** 2026-04-18  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented P0022 as a Maximum Flow benchmark.
+
+Implemented:
+
+- `MaxFlowProblem` Active Record model and migration for persisted network fixtures
+- `MaxFlowFixtures` with five deterministic fixtures from P0022
+- `MaxFlowSolver` pure Ruby Edmonds-Karp candidate
+- `GemMaxFlowSolver` OR-Tools `SimpleMaxFlow` reference wrapper
+- `MaxFlowSolutionValidator` for conservation, capacity, non-negativity, source-flow, and sink-flow checks
+- `MaxFlowResultComparison` for optimality and validation comparison
+- `MaxFlowAttemptRunner` to persist `Attempt` records under prompt `P0022`
+- `/max_flow/attempts` route scope using the existing attempt UI
+- Max Flow challenge card on the algorithm index
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and Max Flow attempt display
+
+### Governance Notes
+
+P0022 documents PI approval for:
+
+```text
+Option A - Edmonds-Karp
+```
+
+Candidate source/version:
+
+```text
+edmonds-karp
+edmonds-karp-v1
+```
+
+Reference version:
+
+```text
+or-tools-simple-max-flow-v1
+```
+
+Reference API verification found the same require naming issue seen in P0021: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
+
+`SimpleMaxFlow` API was verified locally with:
+
+```text
+add_arc_with_capacity
+solve
+optimal_flow
+num_arcs
+tail
+head
+capacity
+flow
+```
+
+### Seeded Results
+
+After seeding, five Max Flow attempts were recorded:
+
+```text
+fixture | status | candidate max flow | OR-Tools max flow | difference
+maxflow_bottleneck_6 | exact_match | 23 | 23 | 0.0
+maxflow_complex_12 | exact_match | 33 | 33 | 0.0
+maxflow_dense_15 | exact_match | 54 | 54 | 0.0
+maxflow_parallel_8 | exact_match | 30 | 30 | 0.0
+maxflow_simple_4 | exact_match | 15 | 15 | 0.0
+```
+
+All candidate flows satisfied:
+
+- flow conservation at intermediate nodes
+- edge capacity constraints
+- nonnegative flow
+- reported max flow equals source outflow
+- source outflow equals sink inflow
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused P0022 tests:
+
+```bash
+bin/rails test test/models/max_flow_problem_test.rb test/services/max_flow_solver_test.rb test/services/gem_max_flow_solver_test.rb test/services/max_flow_solution_validator_test.rb test/services/max_flow_result_comparison_test.rb test/services/max_flow_attempt_runner_test.rb test/controllers/max_flow_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+24 runs, 157 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+80 runs, 547 assertions, 0 failures, 0 errors, 13 skips
+Finished in 22.599842s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+80 runs, 781 assertions, 0 failures, 0 errors, 0 skips
+Finished in 48.596436s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.

@@ -81,6 +81,8 @@ class Attempt < ApplicationRecord
       VrpFixtures.find(fixture_name)
     elsif challenge.name == "Assignment Problem"
       AssignmentProblem.find_by(name: fixture_name)
+    elsif challenge.name == "Max Flow Problem"
+      MaxFlowProblem.find_by(name: fixture_name)
     end
   end
 
@@ -94,6 +96,8 @@ class Attempt < ApplicationRecord
       "Distance Difference"
     when "Assignment Problem"
       "Cost Difference"
+    when "Max Flow Problem"
+      "Flow Difference"
     else
       "Length Difference"
     end
@@ -105,6 +109,8 @@ class Attempt < ApplicationRecord
       "Candidate Routes"
     when "Assignment Problem"
       "Candidate Assignment"
+    when "Max Flow Problem"
+      "Candidate Flow"
     else
       "Candidate Tour"
     end
@@ -116,6 +122,8 @@ class Attempt < ApplicationRecord
       "Reference Routes"
     when "Assignment Problem"
       "Reference Assignment"
+    when "Max Flow Problem"
+      "Reference Flow"
     else
       "Gem Tour"
     end
@@ -131,6 +139,8 @@ class Attempt < ApplicationRecord
       :vrp
     when "Assignment Problem"
       :assignment
+    when "Max Flow Problem"
+      :max_flow
     else
       :tsp
     end
@@ -150,6 +160,12 @@ class Attempt < ApplicationRecord
   private
 
   def route_display(result_data)
+    if result_data.key?("flow_edges")
+      return result_data.fetch("flow_edges").map do |from, to, flow|
+        "#{from} -> #{to}: #{flow}"
+      end.join(" | ")
+    end
+
     if result_data.key?("assignment")
       return result_data.fetch("assignment").each_with_index.map do |task, worker|
         "Worker #{worker} -> Task #{task}"

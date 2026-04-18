@@ -277,3 +277,106 @@ Could not find puma-8.0.0 ... linked to incompatible
 **Classification:** Major architectural error - unauthorized configuration decision with recurring operational impact
 
 **Related:** Violates C003 (architectural checkpoints) - gem installation location is an architectural decision affecting project portability and maintenance
+
+---
+
+# CE0010: UI Layout Regression After Max Flow Implementation
+
+**Date:** 2026-04-18  
+**Prompt:** P0022/R0022 (Max Flow Problem)  
+**Severity:** Medium (functional code, broken UI)
+
+## Error Description
+
+After implementing Max Flow Problem (P0022/R0022), the algorithm index page UI broke:
+- 4 algorithm cards now present (TSP, VRP, Assignment, Max Flow)
+- Grid layout using `repeat(auto-fit, minmax(320px, 1fr))` caused awkward wrapping
+- Cards not aligned properly on wide screens
+- Layout looked broken compared to previous clean 3-card display
+
+**Root cause:** Codex added Max Flow card but did not:
+1. Check the UI in browser after implementation
+2. Test how 4 cards would lay out in the grid
+3. Adjust CSS for the new card count
+
+## Impact
+
+- ✅ **Functionality:** All features work correctly
+- ❌ **UI/UX:** Homepage looks broken, unprofessional
+- ❌ **Verification:** LLM did not validate visual output
+
+**This is a classic LLM failure mode:** Code works, tests pass, but human-facing UI is broken.
+
+## Why This Happened
+
+**Pattern:** LLMs don't naturally verify visual output after changes.
+
+They will:
+- ✅ Write correct Rails code
+- ✅ Add proper routes and controllers  
+- ✅ Make tests pass
+- ❌ Actually look at the rendered UI
+- ❌ Check responsive behavior
+- ❌ Verify layout with new content
+
+**Lesson:** UI verification requires explicit checkpoint, not implicit testing.
+
+
+## Fix Applied
+
+Updated `app/assets/stylesheets/application.css`:
+
+**Before:**
+```css
+.algorithm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+```
+
+**After:**
+```css
+.algorithm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1400px) {
+  .algorithm-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+```
+
+**Changes:**
+- Reduced minmax from 320px to 280px (allows 4 cards to fit better)
+- Increased gap from 1rem to 1.5rem (better spacing)
+- Added `align-items: start` (prevents cards from stretching)
+- Added media query for wide screens (explicit 4-column layout)
+
+## Correction Needed
+
+**New correction C008:** UI verification checkpoint
+
+**Problem:** Code can pass all tests while breaking user-facing UI.
+
+**Required behavior:**
+1. After implementing features that affect UI, Coder must:
+   - Start Rails server
+   - Actually visit affected pages in browser
+   - Take screenshot or describe what they see
+   - Report any layout issues to Architect
+2. Architect must include UI verification in acceptance criteria
+3. PI performs final UI inspection
+
+**Applies to:** Any change affecting views, stylesheets, or user-facing pages
+
+---
+
+**Status:** Fixed by PI  
+**Pattern:** LLMs don't naturally check visual output  
+**Frequency:** Common (happened in P0022)
+

@@ -5,10 +5,12 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     @challenge = Challenge.create!(name: "Traveling Salesman Problem")
     @vrp_challenge = Challenge.create!(name: "Vehicle Routing Problem")
     @assignment_challenge = Challenge.create!(name: "Assignment Problem")
+    @max_flow_challenge = Challenge.create!(name: "Max Flow Problem")
     create_attempt(@challenge, "fixture-brute-force-v1", "brute-force-v1")
     create_attempt(@challenge, "fixture-held-karp-v1", "held-karp-v1")
     create_attempt(@vrp_challenge, "vrp_small_5", "clarke-wright-savings-v1")
     create_attempt(@assignment_challenge, "assignment_tiny_3x3", "hungarian-v1")
+    create_attempt(@max_flow_challenge, "maxflow_simple_4", "edmonds-karp-v1")
   end
 
   test "root shows algorithm agnostic challenge index" do
@@ -27,6 +29,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "1 attempt"
     assert_includes response.body, "Assignment Problem"
     assert_includes response.body, "Exact Hungarian candidate results"
+    assert_includes response.body, "Max Flow Problem"
+    assert_includes response.body, "Exact Edmonds-Karp candidate flows"
     refute_includes response.body, "Knapsack Problem"
     refute_includes response.body, "Graph Coloring"
     assert_includes response.body, "Shortest Path Algorithms"
@@ -52,6 +56,12 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to assignment_attempts_url
   end
 
+  test "challenge show redirects max flow challenge to max flow attempts index" do
+    get challenge_url(@max_flow_challenge)
+
+    assert_redirected_to max_flow_attempts_url
+  end
+
   test "attempts index is scoped under tsp path" do
     assert_equal "/tsp/attempts", attempts_path
   end
@@ -62,6 +72,10 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
 
   test "assignment attempts index is scoped under assignment path" do
     assert_equal "/assignment/attempts", assignment_attempts_path
+  end
+
+  test "max flow attempts index is scoped under max flow path" do
+    assert_equal "/max_flow/attempts", max_flow_attempts_path
   end
 
   private

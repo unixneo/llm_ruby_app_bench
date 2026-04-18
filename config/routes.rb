@@ -30,4 +30,10 @@ Rails.application.routes.draw do
       resources :interpretations, only: [:create]
     end
   end
+
+  scope :max_flow, as: :max_flow, defaults: { challenge_name: "Max Flow Problem" } do
+    resources :attempts, controller: "attempts", only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
+  end
 end
