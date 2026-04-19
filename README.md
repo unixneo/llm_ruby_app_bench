@@ -1,6 +1,7 @@
 # LLM Ruby Algorithm Error Benchmark
 
-![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19650594.svg)](https://doi.org/10.5281/zenodo.19650594)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19650594.svg)](https://doi.org/10.5281/zenodo.19650594)
+
 
 A human-in-the-loop experimental framework for evaluating large language model (LLM) collaborators in research-oriented software development. This project investigates how LLMs handle algorithmic research decisions, specification ambiguity, validation beyond unit tests, and accountability in a three-role architecture: PI (human), Architect (Claude), and Coder (Codex).
 
