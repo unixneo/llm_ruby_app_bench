@@ -25,15 +25,9 @@ class ChallengesController < ApplicationController
       attempt_count: @max_flow_challenge ? Attempt.where(challenge: @max_flow_challenge).count : 0
     }
     # Future algorithm families must have verified Ruby reference gems.
-    # C005: Algorithm selection requires RubyGems survey (see RUBYGEMS_SURVEY.md).
+    # C005: Algorithm selection requires RubyGems survey (see DOCUMENTS/RUBYGEMS_SURVEY.md).
     # Only add placeholders after gem verification is complete.
-    @future_challenges = [
-      {
-        name: "Shortest Path Algorithms",
-        description: "Pathfinding and weighted graph comparisons.",
-        status: "Pending Verification"
-      }
-    ]
+    @future_challenges = []
   end
 
   def show

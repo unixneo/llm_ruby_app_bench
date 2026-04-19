@@ -1,0 +1,32 @@
+{
+  "title": "LLM Ruby Algorithm Error Benchmark",
+  "upload_type": "software",
+  "version": "v0.1.0",
+  "publication_date": "2026-04-19",
+  "description": "A Ruby on Rails research artifact for studying human-in-the-loop governance in LLM-assisted algorithm implementation. The repository preserves prompt, result, error, correction, solver, fixture, and verification records across Traveling Salesman, Vehicle Routing, Assignment, and Max Flow implementations.",
+  "creators": [
+    {
+      "name": "Bass, Tim"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "keywords": [
+    "large language models",
+    "coding agents",
+    "human-in-the-loop governance",
+    "software engineering",
+    "algorithm benchmarking",
+    "Ruby on Rails",
+    "operations research",
+    "reference validation"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/unixneo/llm_ruby_app_bench",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    }
+  ]
+}

@@ -17,7 +17,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_response :success
-    assert_includes response.body, "LLM Ruby Algorithm Error Benchmark"
+    assert_includes response.body, "Ruby Algorithm Benchmark v0.1.0"
+    refute_includes response.body, "LLM Ruby Algorithm Error Benchmark v0.1.0"
     assert_includes response.body, "Passing tests != research correctness"
     assert_includes response.body, "Traveling Salesman Problem"
     assert_includes response.body, "7 fixtures"
@@ -33,8 +34,9 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Exact Edmonds-Karp candidate flows"
     refute_includes response.body, "Knapsack Problem"
     refute_includes response.body, "Graph Coloring"
-    assert_includes response.body, "Shortest Path Algorithms"
-    assert_includes response.body, "Pending Verification"
+    refute_includes response.body, "Shortest Path Algorithms"
+    refute_includes response.body, "Pathfinding and weighted graph comparisons."
+    refute_includes response.body, "Pending Verification"
     refute_includes response.body, "Coming Soon"
   end
 

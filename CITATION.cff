@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software or research artifact, please cite it using the metadata below."
+title: "LLM Ruby Algorithm Error Benchmark"
+type: software
+version: "v0.1.0"
+date-released: "2026-04-19"
+authors:
+  - family-names: "Bass"
+    given-names: "Tim"
+abstract: "A Ruby on Rails research artifact for studying human-in-the-loop governance in LLM-assisted algorithm implementation. The repository preserves prompt, result, error, correction, solver, fixture, and verification records across Traveling Salesman, Vehicle Routing, Assignment, and Max Flow implementations."
+keywords:
+  - "large language models"
+  - "coding agents"
+  - "human-in-the-loop governance"
+  - "software engineering"
+  - "algorithm benchmarking"
+  - "Ruby on Rails"
+  - "operations research"
+  - "reference validation"
+license: "MIT"
+repository-code: "https://github.com/unixneo/llm_ruby_app_bench"
+url: "https://github.com/unixneo/llm_ruby_app_bench"
