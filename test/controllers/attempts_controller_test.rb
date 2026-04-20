@@ -36,6 +36,9 @@ class AttemptsControllerTest < ActionDispatch::IntegrationTest
     get attempts_url
 
     assert_response :success
+    assert_includes response.body, "Problem Profile"
+    assert_includes response.body, "NP-hard optimization problem"
+    assert_includes response.body, "sequencing, routing, dispatch, and tour planning"
     assert_includes response.body, @brute_force_attempt.fixture_name
     assert_includes response.body, "attempt-card"
     assert_includes response.body, "Different route"

@@ -21,6 +21,9 @@ class MaxFlowAttemptsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Max Flow Attempts"
+    assert_includes response.body, "Problem Profile"
+    assert_includes response.body, "Polynomial-time network flow problem"
+    assert_includes response.body, "throughput, bottlenecks, routing capacity"
     assert_includes response.body, "maxflow_simple_4"
     assert_includes response.body, "Flow Difference"
     assert_includes response.body, "Exact match"

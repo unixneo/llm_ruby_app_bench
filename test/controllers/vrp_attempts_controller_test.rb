@@ -21,6 +21,9 @@ class VrpAttemptsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "VRP Attempts"
+    assert_includes response.body, "Problem Profile"
+    assert_includes response.body, "generalizes TSP by adding vehicles, capacity, and assignment-to-route decisions"
+    assert_includes response.body, "logistics, delivery, service fleets, warehouse dispatch"
     assert_includes response.body, "vrp_small_5"
     assert_includes response.body, "Distance Difference"
     assert_includes response.body, "Feasible"

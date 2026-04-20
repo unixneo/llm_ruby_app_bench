@@ -11,6 +11,7 @@ when "Max Flow Problem" then max_flow_attempts_path
 else attempts_path
 end %>
 <% content_for :title, page_title %>
+<% profile = problem_profile_for(@challenge&.name || "Traveling Salesman Problem") %>
 
 <div class="page-header">
   <div>
@@ -19,6 +20,20 @@ end %>
   </div>
   <%= link_to "Back to algorithms", root_path, class: "btn btn-secondary" %>
 </div>
+
+<% if profile %>
+  <section class="card problem-overview-card">
+    <div class="card-header">
+      <h2 class="card-title">Problem Profile</h2>
+      <span class="badge badge-reference">Operations Research</span>
+    </div>
+
+    <div class="problem-profile">
+      <p><strong>Complexity:</strong> <%= profile.fetch(:complexity) %></p>
+      <p><strong>OR relevance:</strong> <%= profile.fetch(:relevance) %></p>
+    </div>
+  </section>
+<% end %>
 
 <% if @algorithm_versions.any? %>
   <section class="card">

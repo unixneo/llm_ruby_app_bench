@@ -21,6 +21,9 @@ class AssignmentAttemptsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Assignment Attempts"
+    assert_includes response.body, "Problem Profile"
+    assert_includes response.body, "Polynomial-time linear assignment problem"
+    assert_includes response.body, "worker-task matching, resource allocation, scheduling"
     assert_includes response.body, "assignment_tiny_3x3"
     assert_includes response.body, "Cost Difference"
     assert_includes response.body, "Exact match"

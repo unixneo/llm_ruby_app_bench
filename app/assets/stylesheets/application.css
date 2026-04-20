@@ -151,7 +151,7 @@ a:hover {
 
 .attempt-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -182,6 +182,23 @@ a:hover {
 
 .algorithm-card-disabled {
   opacity: 0.62;
+}
+
+.problem-profile {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.problem-profile p {
+  margin: 0;
+}
+
+.problem-profile strong {
+  color: var(--accent);
 }
 
 .insight-line {
@@ -418,6 +435,10 @@ textarea:focus {
   }
 
   .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .attempt-grid {
     grid-template-columns: 1fr;
   }
 
