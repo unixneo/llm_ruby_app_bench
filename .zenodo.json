@@ -1,7 +1,7 @@
 {
   "title": "LLM Ruby Algorithm Error Benchmark",
   "upload_type": "software",
-  "version": "v0.1.1",
+  "version": "v0.1.2",
   "publication_date": "2026-04-20",
   "description": "A Ruby on Rails research artifact for studying human-in-the-loop governance in LLM-assisted algorithm implementation. The repository preserves prompt, result, error, correction, solver, fixture, and verification records across Traveling Salesman, Vehicle Routing, Assignment, and Max Flow implementations.",
   "creators": [

@@ -5,7 +5,7 @@
 
 A human-in-the-loop experimental framework for evaluating large language model (LLM) collaborators in research-oriented software development. This project investigates how LLMs handle algorithmic research decisions, specification ambiguity, validation beyond unit tests, and accountability in a three-role architecture: PI (human), Architect (Claude), and Coder (Codex).
 
-**Current release:** v0.1.1
+**Current release:** v0.1.2
 
 ## Core Finding
 
@@ -397,7 +397,7 @@ MIT License
 
 Citation metadata is available in `CITATION.cff`. Zenodo metadata is available in `.zenodo.json`.
 
-Current archival release version: **v0.1.1**
+Current archival release version: **v0.1.2**
 
 After a Zenodo DOI is minted, cite the archived release DOI rather than only the GitHub repository URL.
 
@@ -414,6 +414,6 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 
-**Release Version:** v0.1.1
+**Release Version:** v0.1.2
 
 **Last Updated:** 2026-04-20
