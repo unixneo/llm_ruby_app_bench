@@ -1,3 +1,16 @@
-<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100%" height="100%" fill="red"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LLM Ruby Algorithm Benchmark">
+  <rect width="512" height="512" rx="108" fill="#101820"/>
+
+  <polygon points="142,334 206,196 255,219 191,357" fill="#e11d48"/>
+  <polygon points="206,196 315,282 284,322 175,236" fill="#e11d48"/>
+  <polygon points="315,282 383,152 429,176 361,306" fill="#e11d48"/>
+
+  <circle cx="166" cy="346" r="58" fill="#f8fafc"/>
+  <circle cx="166" cy="346" r="28" fill="#e11d48"/>
+  <circle cx="216" cy="196" r="58" fill="#f8fafc"/>
+  <circle cx="216" cy="196" r="28" fill="#e11d48"/>
+  <circle cx="306" cy="302" r="58" fill="#f8fafc"/>
+  <circle cx="306" cy="302" r="28" fill="#e11d48"/>
+  <circle cx="406" cy="164" r="58" fill="#f8fafc"/>
+  <circle cx="406" cy="164" r="28" fill="#e11d48"/>
 </svg>
