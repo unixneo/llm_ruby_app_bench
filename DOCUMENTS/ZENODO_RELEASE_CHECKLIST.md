@@ -2,7 +2,7 @@
 
 This checklist prepares the repository for a Zenodo GitHub release archive.
 
-Release version: `v0.1.0`
+Release version: `v0.1.1`
 
 ## Archive Metadata
 
@@ -10,7 +10,7 @@ Release version: `v0.1.0`
 - `.zenodo.json` provides Zenodo deposit metadata.
 - `LICENSE` is MIT.
 - Repository URL: https://github.com/unixneo/llm_ruby_app_bench
-- Release version: `v0.1.0`
+- Release version: `v0.1.1`
 
 ## Current Artifact Scope
 
@@ -57,7 +57,7 @@ Zenodo archives the GitHub release contents, not local ignored files. Before tag
 ## Release Steps
 
 1. Review the clean working tree and metadata.
-2. Create release tag `v0.1.0`.
+2. Create release tag `v0.1.1`.
 3. Create a GitHub release from that tag.
 4. Let Zenodo archive the GitHub release.
 5. After Zenodo mints the DOI, update `CITATION.cff`, `.zenodo.json`, and `README.md` with the DOI in a follow-up commit if required.

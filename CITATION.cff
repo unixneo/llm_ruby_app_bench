@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software or research artifact, please cite it using the metadata below."
 title: "LLM Ruby Algorithm Error Benchmark"
 type: software
-version: "v0.1.0"
-date-released: "2026-04-19"
+version: "v0.1.1"
+date-released: "2026-04-20"
 authors:
   - family-names: "Bass"
     given-names: "Tim"
