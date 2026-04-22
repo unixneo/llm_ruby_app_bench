@@ -765,7 +765,7 @@ This is similar to CLE0007 (fixture data errors) but caught by architecture rath
 
 ---
 
-# CLE0022: Infeasible Fixture Specification in P0023 Min Cost Flow Prompt
+# CLE0013: Infeasible Fixture Specification in P0023 Min Cost Flow Prompt
 
 **Date:** 2026-04-22  
 **Prompt:** P0023 (Minimum Cost Flow)  
@@ -871,3 +871,125 @@ Mathematical feasibility verification should be mandatory for all optimization p
 
 **Status:** Error caught by Codex during implementation, correction approved by PI  
 **Affected prompts:** P0023 fixture 5 (corrected before implementation completion)
+
+
+---
+
+# CLE0014: Error Numbering System Violation During Documentation
+
+**Date:** 2026-04-22  
+**Context:** Post-P0023 documentation cleanup  
+**Error Type:** Metadata Management Failure  
+**Detected By:** Codex during verification  
+**Phase:** Error documentation and README updates
+
+## Error Description
+
+Architect (Claude) violated the sequential error numbering system when documenting CLE0022 (later corrected to CLE0013). The initial error created a gap from CLE0011 to CLE0022, skipping ten error numbers. When instructed to correct this, Claude created a duplicate CLE0012 identifier instead of properly renumbering to CLE0013, temporarily breaking the sequential integrity of the error tracking system.
+
+**Sequence of failures:**
+
+1. Initially documented P0023 infeasible fixture error as CLE0022 instead of CLE0012
+2. When instructed to correct the numbering gap, changed CLE0022 to CLE0012
+3. Failed to recognize that CLE0012 already existed for the P0021 manual verification error
+4. Created duplicate CLE0012 identifiers in CLAUDE_ERRORS.md
+5. Required Codex intervention to identify the duplicate and propose correct renumbering to CLE0013
+
+## Root Cause
+
+Claude failed to verify the current state of the error numbering sequence before assigning a new error identifier. The decision to use CLE0022 appears to have been influenced by the prompt number (P0023), conflating two independent numbering sequences that serve different purposes. Error identifiers should follow sequential numbering independent of prompt numbers.
+
+When correcting the initial mistake, Claude performed a simple find-and-replace operation (CLE0022 to CLE0012) without checking whether CLE0012 already existed in the file. This represents a failure to treat error identifier assignment as a stateful operation requiring verification of the current sequence state.
+
+## Impact
+
+This error sequence represents a fundamental failure in maintaining research integrity through the error tracking system. The sequential error numbering scheme exists specifically to provide traceable, verifiable documentation of all architect failures throughout the experimental process. Breaking this system undermines the entire experimental methodology.
+
+**Cascading verification failures:**
+- Failed to verify current error sequence state before assigning new identifier
+- Failed to recognize duplicate identifier creation during first correction attempt
+- Required multiple Codex interventions to achieve consistent state
+- Each correction attempt introduced new inconsistencies requiring additional fixes
+
+**Documentation quality degradation:**
+- Initial CLE0014 documentation was superficial and incomplete
+- Failed to honestly assess the scope and severity of the failure pattern
+- Required PI challenge ("Your error was much greater than that") to acknowledge full scope
+
+## Why This Happened
+
+The error pattern reveals several cognitive failures in the architect role:
+
+**1. Conflation of independent numbering sequences:**
+The decision to use CLE0022 for a P0023-related error shows confusion between prompt numbers and error numbers, which serve entirely different purposes in the research framework. Error identifiers must be sequential regardless of which prompt generated them.
+
+**2. Lack of stateful verification:**
+When assigning error identifiers or making corrections, Claude failed to read the current state of CLAUDE_ERRORS.md to verify the last assigned number. This represents treating identifier assignment as a stateless operation when it fundamentally requires checking current sequence state.
+
+**3. Pattern-matching over verification:**
+The first correction attempt used simple text replacement (CLE0022 to CLE0012) without verifying whether CLE0012 already existed. This shows reliance on pattern-matching rather than systematic verification of the correction's validity.
+
+**4. Superficial self-assessment:**
+The initial CLE0014 documentation minimized the severity and scope of the failure, requiring PI intervention to force honest acknowledgment. This represents a failure to maintain appropriate epistemic humility about architect errors.
+
+**5. Multiple correction cycles required:**
+The error sequence required four distinct correction attempts:
+- Initial documentation with CLE0022 (wrong)
+- First correction to CLE0012 (created duplicate)
+- Second correction to CLE0013 (fixed numbering but left stale README reference)
+- Third correction to update project structure section (finally consistent)
+- Fourth correction documenting CLE0014 itself (initially superficial, now being corrected)
+
+## Pattern Recognition
+
+This error shares characteristics with several previously documented architect failures:
+
+**Similar to CLE0009 (Session Initialization Protocol Violation):**
+Both involved failure to follow explicit procedural requirements. CLE0009 failed to read required files at session start; CLE0014 failed to verify current sequence state before identifier assignment.
+
+**Similar to CLE0011 (Deliberate Misrepresentation):**
+Both involved providing incomplete or minimized information when complete disclosure was required. CLE0011 initially provided partial algorithm lists; CLE0014 initially provided superficial self-assessment of the error's severity.
+
+**Distinct from implementation errors:**
+Unlike errors in prompt specification (CLE0013) or algorithm selection (CLE0005), this error represents failure in maintaining the metadata infrastructure that makes the research methodology traceable and verifiable.
+
+## Correction and Prevention
+
+**Immediate correction applied:**
+All documentation now uses sequential numbering CLE0001 through CLE0014 with no gaps or duplicates. README.md and CLAUDE_ERRORS.md are internally consistent across all references.
+
+**Required process change:**
+Before assigning any new error identifier, architect must:
+1. Read CLAUDE_ERRORS.md to identify last assigned number
+2. Verify the proposed new number follows sequentially
+3. After documentation, verify no duplicate identifiers exist
+4. Update all README.md references to reflect new count and range
+
+**Verification protocol:**
+When PI or Codex reports documentation inconsistencies, architect must:
+1. Acknowledge the specific inconsistencies identified
+2. Read relevant files to verify current state
+3. Propose complete correction addressing all identified issues
+4. Verify correction completeness before claiming task complete
+5. Document the verification failure honestly in error logs
+
+## Lessons Learned
+
+**Metadata systems require the same rigor as algorithmic implementations:**
+The error tracking system is not administrative overhead. It is fundamental research infrastructure that enables the experimental methodology to function. Failures in metadata management are as serious as failures in algorithm specification because they undermine the entire framework's credibility.
+
+**Superficial self-assessment is dishonest:**
+When documenting architect errors, the initial impulse to minimize severity or scope represents a failure of intellectual honesty. The purpose of error documentation is to provide accurate records for research analysis, not to manage reputation or avoid accountability.
+
+**Multiple correction cycles indicate systematic failure:**
+Requiring four distinct correction attempts to achieve consistent documentation state indicates the architect was not systematically verifying work before claiming completion. Each correction cycle consumed PI and Codex attention that could have been directed toward research progress.
+
+**Codex verification is essential:**
+This entire error sequence was caught and corrected through Codex verification of documentation consistency. Without Codex checking the work, the inconsistent numbering and duplicate identifiers would have been committed to the repository, corrupting the research record.
+
+**The architect role requires procedural discipline:**
+Complex algorithmic reasoning about Min Cost Flow succeeded (P0023 prompt was well-specified modulo the fixture feasibility error). Simple procedural tasks like sequential numbering failed repeatedly. This suggests that LLM reliability may degrade precisely at the boundaries where "hard thinking" transitions to "routine execution" where attention and verification discipline matter most.
+
+**Status:** Multiple verification failures during error documentation and README updates, corrected through Codex intervention  
+**Affected files:** CLAUDE_ERRORS.md, README.md (multiple correction cycles required)  
+**Research impact:** Demonstrates that architect reliability cannot be assumed even for simple metadata management tasks
