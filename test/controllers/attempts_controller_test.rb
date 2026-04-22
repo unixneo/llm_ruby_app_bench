@@ -3,6 +3,7 @@ require "test_helper"
 class AttemptsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @challenge = Challenge.create!(name: "Traveling Salesman Problem")
+    @min_cost_flow_challenge = Challenge.create!(name: "Minimum Cost Flow Problem")
     @brute_force_attempt = create_attempt(
       fixture_name: "octagon_8",
       algorithm_version: "brute-force-v1",
@@ -27,6 +28,17 @@ class AttemptsControllerTest < ActionDispatch::IntegrationTest
       candidate_source: "held-karp",
       candidate_tour: [0, 9, 0],
       reference_tour: [0, 9, 0],
+      status: "exact_match",
+      difference: 0.0
+    )
+    @min_cost_flow_attempt = Attempt.create!(
+      prompt_id: "P0023",
+      challenge: @min_cost_flow_challenge,
+      fixture_name: "mincostflow_simple_4",
+      algorithm_version: "successive-shortest-path-v1",
+      reference_version: "or-tools-simple-min-cost-flow-v1",
+      candidate_result: JSON.pretty_generate(min_cost_flow_result_hash("successive-shortest-path")),
+      reference_result: JSON.pretty_generate(min_cost_flow_result_hash("or-tools")),
       status: "exact_match",
       difference: 0.0
     )
@@ -100,6 +112,27 @@ class AttemptsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Tokyo -&gt; Osaka -&gt; Tokyo"
   end
 
+  test "shows min cost flow attempts index under scoped path" do
+    get min_cost_flow_attempts_url
+
+    assert_response :success
+    assert_includes response.body, "Min Cost Flow Attempts"
+    assert_includes response.body, "mincostflow_simple_4"
+    refute_includes response.body, "octagon_8"
+    assert_includes response.body, "Cost Difference"
+  end
+
+  test "shows no attempts instead of leaking all attempts when scoped challenge is missing" do
+    Challenge.find_by(name: "Minimum Cost Flow Problem")&.destroy
+
+    get min_cost_flow_attempts_url
+
+    assert_response :success
+    assert_includes response.body, "Min Cost Flow Attempts"
+    assert_includes response.body, "No attempts recorded"
+    refute_includes response.body, "octagon_8"
+  end
+
   private
 
   def create_attempt(fixture_name:, algorithm_version:, candidate_source:, candidate_tour:, reference_tour:, status:, difference:)
@@ -124,6 +157,18 @@ class AttemptsControllerTest < ActionDispatch::IntegrationTest
       objective_value: 4.0,
       scale: 1,
       reference_version: "or-tools-guided-local-search-v1"
+    }
+  end
+
+  def min_cost_flow_result_hash(source)
+    {
+      optimal_cost: 90,
+      flow_edges: [[0, 1, 15], [0, 2, 0], [1, 3, 15], [2, 3, 0]],
+      source: source,
+      total_flow: 15,
+      demand_satisfied: true,
+      demand: 15,
+      reference_version: "or-tools-simple-min-cost-flow-v1"
     }
   end
 end

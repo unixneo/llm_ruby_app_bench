@@ -547,3 +547,304 @@ All use exact or optimal algorithms, but different problem structures.
 **Approved algorithm:** Edmonds-Karp (Ford-Fulkerson with BFS)  
 **PI approval:** 2026-04-17 (Option A selected)
 
+
+
+---
+
+# P0023: Minimum Cost Flow Problem Implementation
+
+**Date:** 2026-04-22  
+**Status:** Ready for implementation  
+**Architect:** Claude  
+**Algorithm:** Successive Shortest Path
+
+## Problem Statement
+
+Implement the Minimum Cost Flow Problem solver using the Successive Shortest Path algorithm.
+
+**Problem definition:**
+- Input: Directed graph with nodes, edges with capacities and costs, source node with supply, sink node with demand
+- Goal: Find flow from source to sink that satisfies demand at minimum total cost
+- Constraints: Flow on edge must not exceed capacity, flow conservation at intermediate nodes, total flow must satisfy demand
+- Output: Minimum cost value and flow assignments on edges
+
+**Complexity:** Polynomial time with proper shortest path implementation
+
+## Algorithm: Successive Shortest Path
+
+**Overview:**
+The Successive Shortest Path algorithm finds minimum cost flow by iteratively sending flow along the cheapest augmenting path in the residual graph. Unlike Edmonds-Karp which maximizes flow, this algorithm minimizes total cost while satisfying a fixed demand.
+
+**Key concepts:**
+- **Residual graph with costs:** For each edge from u to v with capacity c, current flow f, and unit cost w, the residual graph contains a forward edge from u to v with residual capacity c minus f and cost w, plus a backward edge from v to u with residual capacity f and cost negative w.
+- **Shortest path by cost:** Path from source to sink in residual graph with minimum total cost (sum of edge costs).
+- **Flow augmentation:** Increase flow along shortest cost path by minimum of remaining demand and path bottleneck capacity.
+- **Optimality:** When demand is satisfied and no negative cost cycle exists, the flow is optimal.
+
+**Algorithm steps:**
+
+1. **Initialize flow:** Set flow on all edges to zero.
+
+2. **Build residual graph with costs:**
+   - For each edge from u to v with capacity c, current flow f, and cost w, add forward edge from u to v with residual capacity c minus f and cost w. If f is greater than zero, add backward edge from v to u with residual capacity f and cost negative w.
+   - Only include edges with positive residual capacity.
+
+3. **Find shortest cost path:**
+   - Use Bellman-Ford or Dijkstra (with non-negative costs after potential adjustment) to find minimum cost path from source to sink in residual graph.
+   - Track parent pointers to reconstruct path.
+   - If no path exists or remaining demand is zero, algorithm terminates.
+
+4. **Calculate bottleneck capacity:**
+   - Find minimum residual capacity along the path found.
+   - Take minimum of bottleneck and remaining demand.
+
+5. **Augment flow:**
+   - For each edge on the path, if it is a forward edge, increase flow by augmentation amount. If it is a backward edge, decrease flow by augmentation amount.
+   - Reduce remaining demand by augmentation amount.
+
+6. **Repeat steps 2 through 5** until demand is satisfied or no augmenting path exists.
+
+**Termination:** When remaining demand reaches zero or no path exists from source to sink, current flow represents minimum cost solution.
+
+**Reference materials:**
+- Ahuja, Magnanti, Orlin "Network Flows" Chapter 9
+- Wikipedia "Minimum-cost flow problem" for algorithm variants
+- OR-Tools documentation for verification approach
+
+## Test Fixtures
+
+Create five minimum cost flow fixtures in db/seeds.rb:
+
+### Fixture 1: mincostflow_simple_4
+```ruby
+{
+  name: "mincostflow_simple_4",
+  nodes: 4,
+  edges: [
+    [0, 1, 15, 4],   # source to node1, capacity 15, cost 4 per unit
+    [0, 2, 8, 4],    # source to node2, capacity 8, cost 4 per unit
+    [1, 3, 20, 2],   # node1 to sink, capacity 20, cost 2 per unit
+    [2, 3, 10, 6]    # node2 to sink, capacity 10, cost 6 per unit
+  ],
+  source: 0,
+  sink: 3,
+  demand: 15,
+  description: "Simple 4-node network with two paths of different costs (optimal uses cheaper path via node1)"
+}
+```
+**Expected:** Minimum cost uses 15 units via node1 (cost = 15 times 6 = 90), no flow via node2.
+
+### Fixture 2: mincostflow_balanced_6
+```ruby
+{
+  name: "mincostflow_balanced_6",
+  nodes: 6,
+  edges: [
+    [0, 1, 10, 2],
+    [0, 2, 10, 4],
+    [1, 3, 8, 5],
+    [1, 4, 2, 3],
+    [2, 3, 5, 1],
+    [2, 4, 8, 2],
+    [3, 5, 15, 1],
+    [4, 5, 10, 3]
+  ],
+  source: 0,
+  sink: 5,
+  demand: 12,
+  description: "Medium network requiring cost-aware path selection across multiple intermediate nodes"
+}
+```
+**Expected:** Optimal flow balances between cheaper long paths and expensive short paths.
+
+### Fixture 3: mincostflow_high_cost_shortcut_5
+```ruby
+{
+  name: "mincostflow_high_cost_shortcut_5",
+  nodes: 5,
+  edges: [
+    [0, 1, 20, 1],   # cheap first leg
+    [1, 2, 20, 1],   # cheap second leg
+    [2, 4, 20, 1],   # cheap final leg (long path total cost 3)
+    [0, 3, 15, 10],  # expensive first leg of shortcut
+    [3, 4, 15, 1]    # cheap second leg of shortcut (shortcut total cost 11)
+  ],
+  source: 0,
+  sink: 4,
+  demand: 18,
+  description: "Tests preference for longer cheap path over expensive shortcut"
+}
+```
+**Expected:** Algorithm should route flow through the three-hop cheap path, not the expensive shortcut.
+
+### Fixture 4: mincostflow_capacity_limited_7
+```ruby
+{
+  name: "mincostflow_capacity_limited_7",
+  nodes: 7,
+  edges: [
+    [0, 1, 5, 1],
+    [0, 2, 10, 3],
+    [1, 3, 3, 2],
+    [1, 4, 4, 4],
+    [2, 4, 8, 1],
+    [2, 5, 6, 2],
+    [3, 6, 10, 3],
+    [4, 6, 12, 2],
+    [5, 6, 8, 1]
+  ],
+  source: 0,
+  sink: 6,
+  demand: 14,
+  description: "Capacity constraints force use of multiple paths despite cost differences"
+}
+```
+**Expected:** Cheapest path has insufficient capacity, requiring flow distribution across more expensive alternatives.
+
+### Fixture 5: mincostflow_parallel_edges_8
+```ruby
+{
+  name: "mincostflow_parallel_edges_8",
+  nodes: 8,
+  edges: [
+    [0, 1, 8, 3],
+    [0, 2, 7, 2],
+    [1, 3, 6, 4],
+    [1, 4, 5, 1],
+    [2, 3, 4, 2],
+    [2, 5, 9, 3],
+    [3, 6, 10, 2],
+    [4, 6, 8, 5],
+    [4, 7, 6, 1],
+    [5, 7, 7, 4],
+    [6, 7, 15, 1]
+  ],
+  source: 0,
+  sink: 7,
+  demand: 16,
+  description: "Complex network with multiple parallel routing options requiring optimal cost balancing"
+}
+```
+**Expected:** Optimal solution distributes flow across multiple paths based on combined capacity and cost tradeoffs.
+
+## Reference Implementation
+
+Use OR-Tools MinCostFlow solver:
+
+```ruby
+require 'or_tools'
+
+min_cost_flow = ORTools::SimpleMinCostFlow.new
+
+# Add edges: start_node, end_node, capacity, unit_cost
+edges.each do |start_node, end_node, capacity, unit_cost|
+  min_cost_flow.add_arc_with_capacity_and_unit_cost(
+    start_node, end_node, capacity, unit_cost
+  )
+end
+
+# Add supply at source, demand at sink
+min_cost_flow.set_node_supply(source, demand)
+min_cost_flow.set_node_supply(sink, -demand)
+
+status = min_cost_flow.solve
+
+if status == ORTools::SimpleMinCostFlow::OPTIMAL
+  optimal_cost = min_cost_flow.optimal_cost
+  # Extract flow on each arc with min_cost_flow.flow(arc_index)
+end
+```
+
+## Candidate Implementation
+
+Create MinCostFlowSolver class that implements Successive Shortest Path:
+
+**Required methods:**
+- initialize: accepts nodes, edges with capacities and costs, source, sink, demand
+- solve: returns hash with optimal_cost and flow_assignments
+- validate_flow: verifies flow conservation, capacity constraints, demand satisfaction
+
+**Data structure:**
+- Edge: start_node, end_node, capacity, cost, flow
+- ResidualEdge: start_node, end_node, residual_capacity, cost
+
+**Algorithm components:**
+- build_residual_graph: constructs residual network with forward and backward edges
+- shortest_cost_path: uses Bellman-Ford to find minimum cost path (handles negative costs from backward edges)
+- augment_flow: updates flow along path and decreases remaining demand
+- calculate_total_cost: sums cost times flow for all edges
+
+## Validation Requirements
+
+For each fixture:
+
+1. **Flow conservation:** For every intermediate node, total inflow equals total outflow
+2. **Capacity constraints:** Flow on every edge does not exceed its capacity
+3. **Non-negativity:** Flow on every edge is greater than or equal to zero
+4. **Demand satisfaction:** Total flow from source equals demand
+5. **Cost optimality:** Total cost matches OR-Tools solution within tolerance of 0.01
+
+## Comparison Metrics
+
+**Primary metric:** Total cost of candidate flow versus OR-Tools optimal cost
+
+**Secondary metrics:**
+- Flow assignments per edge (should match OR-Tools within tolerance)
+- Number of iterations required to reach optimal solution
+- Path selection sequence (for debugging non-optimal solutions)
+
+**Error patterns to detect:**
+- Candidate finds feasible flow but with higher cost than optimal
+- Capacity violations during flow augmentation
+- Flow conservation errors at intermediate nodes
+- Infinite loops from incorrect residual graph construction
+- Incorrect handling of backward edges or negative costs
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures pass validation** - Flows satisfy conservation, capacity, non-negativity, and demand
+2. ✅ **Optimal costs found** - Candidate total cost matches OR-Tools reference within tolerance of 0.01
+3. ✅ **Tests pass** - All unit tests green
+4. ✅ **Successive Shortest Path implemented** - Bellman-Ford for shortest cost path, residual graph with costs, flow augmentation
+5. ✅ **Performance acceptable** - 8-node problem solves in under 5 seconds
+
+## Expected Behavior
+
+**For all 5 fixtures:**
+- Candidate produces valid flow (validation passes)
+- Candidate total cost matches OR-Tools optimal (within 0.01 tolerance)
+- Flow conservation holds at all intermediate nodes
+- No capacity constraints violated
+- Demand fully satisfied
+
+**Comparison with previous algorithms:**
+- Max Flow: Maximizes flow from source to sink (no costs)
+- Min Cost Flow: Minimizes cost while satisfying fixed demand (adds cost dimension)
+- Both use residual graphs but optimize different objectives
+
+## Implementation Notes
+
+**Algorithm complexity:**
+- Successive Shortest Path requires Bellman-Ford implementation for handling negative edge costs in residual graph
+- Approximately 150 to 200 lines of algorithmic code
+- More complex than Edmonds-Karp due to cost tracking and demand satisfaction logic
+
+**Testing strategy:**
+- Start with simple 4-node fixture (manual cost verification possible)
+- Verify cost optimality on all fixtures (compare with OR-Tools)
+- Edge cases: demand exceeds max flow capacity, no feasible flow, single path network
+
+**UI considerations:**
+- Network graph visualization with nodes and edges
+- Display both capacity and cost on edges
+- Show flow values and resulting costs per edge
+- Highlight paths used in optimal solution
+- Display total cost prominently
+- Compare candidate cost with OR-Tools reference cost
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved algorithm:** Successive Shortest Path  
+**PI approval:** 2026-04-22

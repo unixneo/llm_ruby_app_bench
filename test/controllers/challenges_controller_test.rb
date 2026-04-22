@@ -5,11 +5,13 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     @challenge = Challenge.create!(name: "Traveling Salesman Problem")
     @vrp_challenge = Challenge.create!(name: "Vehicle Routing Problem")
     @assignment_challenge = Challenge.create!(name: "Assignment Problem")
+    @min_cost_flow_challenge = Challenge.create!(name: "Minimum Cost Flow Problem")
     @max_flow_challenge = Challenge.create!(name: "Max Flow Problem")
     create_attempt(@challenge, "fixture-brute-force-v1", "brute-force-v1")
     create_attempt(@challenge, "fixture-held-karp-v1", "held-karp-v1")
     create_attempt(@vrp_challenge, "vrp_small_5", "clarke-wright-savings-v1")
     create_attempt(@assignment_challenge, "assignment_tiny_3x3", "hungarian-v1")
+    create_attempt(@min_cost_flow_challenge, "mincostflow_simple_4", "successive-shortest-path-v1")
     create_attempt(@max_flow_challenge, "maxflow_simple_4", "edmonds-karp-v1")
   end
 
@@ -17,8 +19,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_response :success
-    assert_includes response.body, "Ruby Algorithm Benchmark v0.1.0"
-    refute_includes response.body, "LLM Ruby Algorithm Error Benchmark v0.1.0"
+    assert_includes response.body, "Ruby Algorithm Benchmark v0.1.2"
+    refute_includes response.body, "LLM Ruby Algorithm Error Benchmark v0.1.2"
     assert_includes response.body, "Passing tests != research correctness"
     assert_includes response.body, "Traveling Salesman Problem"
     refute_includes response.body, "NP-hard optimization problem"
@@ -37,6 +39,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Exact Hungarian candidate results"
     refute_includes response.body, "Polynomial-time linear assignment problem"
     refute_includes response.body, "worker-task matching, resource allocation, scheduling"
+    assert_includes response.body, "Minimum Cost Flow Problem"
+    assert_includes response.body, "Successive-shortest-path candidate results"
     assert_includes response.body, "Max Flow Problem"
     assert_includes response.body, "Exact Edmonds-Karp candidate flows"
     refute_includes response.body, "Polynomial-time network flow problem"
@@ -73,6 +77,12 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to max_flow_attempts_url
   end
 
+  test "challenge show redirects min cost flow challenge to min cost flow attempts index" do
+    get challenge_url(@min_cost_flow_challenge)
+
+    assert_redirected_to min_cost_flow_attempts_url
+  end
+
   test "attempts index is scoped under tsp path" do
     assert_equal "/tsp/attempts", attempts_path
   end
@@ -87,6 +97,10 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
 
   test "max flow attempts index is scoped under max flow path" do
     assert_equal "/max_flow/attempts", max_flow_attempts_path
+  end
+
+  test "min cost flow attempts index is scoped under min cost flow path" do
+    assert_equal "/min_cost_flow/attempts", min_cost_flow_attempts_path
   end
 
   private

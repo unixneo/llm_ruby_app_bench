@@ -1,5 +1,6 @@
 class AttemptsController < ApplicationController
   def index
+    @challenge_name = params[:challenge_name]
     @challenge = challenge_for_scope
     @algorithm_versions = scoped_attempts.distinct.order(:algorithm_version).pluck(:algorithm_version)
     @attempts = scoped_attempts.includes(:challenge, :interpretation).order(created_at: :desc)
@@ -15,9 +16,13 @@ class AttemptsController < ApplicationController
   private
 
   def scoped_attempts
-    scope = Attempt.all
-    scope = scope.where(challenge: @challenge) if @challenge
-    scope
+    if @challenge
+      Attempt.where(challenge: @challenge)
+    elsif @challenge_name.present?
+      Attempt.none
+    else
+      Attempt.all
+    end
   end
 
   def challenge_for_scope

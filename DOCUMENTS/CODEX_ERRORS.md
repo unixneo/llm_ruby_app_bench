@@ -380,3 +380,127 @@ Updated `app/assets/stylesheets/application.css`:
 **Pattern:** LLMs don't naturally check visual output  
 **Frequency:** Common (happened in P0022)
 
+---
+
+## CE0011 - Scoped Attempts Page Fell Back to TSP and Leaked All Attempts
+
+**Date:** 2026-04-22  
+**Prompt:** P0023/R0023 (Minimum Cost Flow Problem)  
+**Severity:** Medium (feature implemented, scoped UI behavior wrong)
+
+### Error Description
+
+After implementing the `Minimum Cost Flow Problem` lane, visiting `/min_cost_flow/attempts` showed the wrong page behavior:
+
+- page title fell back to `TSP Attempts`
+- TSP problem profile text was shown
+- all attempts across all challenges were listed
+- minimum-cost-flow scoping did not hold when the `Challenge` row was absent
+
+This made the new route look like a TSP page with mixed benchmark data instead of a scoped Minimum Cost Flow attempt index.
+
+### Root Cause
+
+Codex introduced two linked implementation bugs:
+
+1. **Controller fallback bug**
+   In `AttemptsController#index`, scoped requests only filtered by challenge if `Challenge.find_by(name: params[:challenge_name])` returned a row.
+
+   If the scoped challenge row did not yet exist in the database, `@challenge` became `nil`, and `scoped_attempts` returned `Attempt.all` instead of no records.
+
+2. **View fallback bug**
+   `app/views/attempts/index.html.erb` was not updated to recognize `Minimum Cost Flow Problem`.
+
+   This left:
+   - page title fallback at `TSP Attempts`
+   - scoped filter-link fallback at `attempts_path`
+   - attempt-link helper logic missing the `min_cost_flow` branch
+
+### Why This Is a Codex Error
+
+The implementation added:
+
+- `min_cost_flow` routes
+- challenge index card
+- `Attempt#route_path_name` support
+
+But Codex failed to complete the end-to-end wiring for the shared attempts index. This is a classic partial-integration bug:
+
+- routing added
+- backend model support added
+- one shared UI surface not fully updated
+- bad nil fallback exposed unrelated records
+
+This was also a direct failure to follow an existing instruction already written for Codex:
+
+```text
+C008 - UI Verification Checkpoint
+```
+
+`C008` already required UI verification for user-facing changes. The scoped attempts page was a user-facing page, and Codex did not verify it adequately before treating the implementation as complete.
+
+### Impact
+
+- ✅ `P0023` solver/reference/validator/runner implementation worked
+- ✅ `/min_cost_flow/attempts` route existed
+- ❌ page rendered the wrong benchmark identity
+- ❌ scoped route leaked all attempts when challenge record was missing
+- ❌ user-facing behavior was misleading enough to look like the feature had not been implemented correctly
+
+### Fix Applied
+
+Two corrections were made:
+
+1. **Controller fix**
+   `AttemptsController#scoped_attempts` now returns `Attempt.none` for scoped routes when `challenge_name` is present but the corresponding `Challenge` row is missing.
+
+2. **View fix**
+   `app/views/attempts/index.html.erb` now includes a `Minimum Cost Flow Problem` branch for:
+   - page title
+   - scoped filter path
+   - problem profile selection
+   - attempt detail links
+
+### Verification Added
+
+Focused controller coverage was added for:
+
+- minimum-cost-flow scoped attempts page renders `Min Cost Flow Attempts`
+- scoped page shows min-cost-flow attempts rather than TSP attempts
+- missing scoped challenge row renders `No attempts recorded` instead of leaking all attempts
+
+Verification command:
+
+```bash
+bin/rails test test/controllers/attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+19 runs, 161 assertions, 0 failures, 0 errors, 0 skips
+```
+
+### Compliance Failure
+
+This error does **not** indicate a missing correction.
+
+It indicates that Codex failed to comply with the correction already in force:
+
+- `C008` should have caught the wrong page title
+- `C008` should have caught the wrong problem profile text
+- `C008` should have caught the leaked all-attempts dataset
+- `C008` should have caught the broken scoped page identity
+
+The failure was execution against existing instructions, not absence of instructions.
+
+### Lesson
+
+When extending a shared multi-algorithm UI, Codex must verify all of these together:
+
+- route scope exists
+- challenge lookup works with and without seeded records
+- shared page titles/labels include the new challenge
+- nil fallback does not silently widen scope to all records
+
+This was not a solver bug. It was a shared-UI integration bug caused by incomplete propagation of a new challenge type through the generic attempts page.

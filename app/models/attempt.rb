@@ -81,6 +81,8 @@ class Attempt < ApplicationRecord
       VrpFixtures.find(fixture_name)
     elsif challenge.name == "Assignment Problem"
       AssignmentProblem.find_by(name: fixture_name)
+    elsif challenge.name == "Minimum Cost Flow Problem"
+      MinCostFlowProblem.find_by(name: fixture_name)
     elsif challenge.name == "Max Flow Problem"
       MaxFlowProblem.find_by(name: fixture_name)
     end
@@ -94,7 +96,7 @@ class Attempt < ApplicationRecord
     case challenge.name
     when "Vehicle Routing Problem"
       "Distance Difference"
-    when "Assignment Problem"
+    when "Assignment Problem", "Minimum Cost Flow Problem"
       "Cost Difference"
     when "Max Flow Problem"
       "Flow Difference"
@@ -109,6 +111,8 @@ class Attempt < ApplicationRecord
       "Candidate Routes"
     when "Assignment Problem"
       "Candidate Assignment"
+    when "Minimum Cost Flow Problem"
+      "Candidate Flow"
     when "Max Flow Problem"
       "Candidate Flow"
     else
@@ -122,6 +126,8 @@ class Attempt < ApplicationRecord
       "Reference Routes"
     when "Assignment Problem"
       "Reference Assignment"
+    when "Minimum Cost Flow Problem"
+      "Reference Flow"
     when "Max Flow Problem"
       "Reference Flow"
     else
@@ -139,6 +145,8 @@ class Attempt < ApplicationRecord
       :vrp
     when "Assignment Problem"
       :assignment
+    when "Minimum Cost Flow Problem"
+      :min_cost_flow
     when "Max Flow Problem"
       :max_flow
     else

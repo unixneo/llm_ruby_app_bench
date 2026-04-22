@@ -145,6 +145,37 @@
     <%= link_to "View Attempts", @max_flow_challenge ? challenge_path(@max_flow_challenge) : max_flow_attempts_path, class: "btn btn-primary" %>
   </article>
 
+  <article class="algorithm-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Minimum Cost Flow Problem</h2>
+        <p class="muted-line">Successive-shortest-path candidate results compared with OR-Tools SimpleMinCostFlow references.</p>
+      </div>
+      <span class="badge badge-pass">Active</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">Fixtures</div>
+        <div class="metric-value"><%= pluralize(@min_cost_flow_stats.fetch(:fixture_count), "fixture") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Algorithms</div>
+        <div class="metric-value"><%= pluralize(@min_cost_flow_stats.fetch(:algorithm_count), "algorithm") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value"><%= pluralize(@min_cost_flow_stats.fetch(:attempt_count), "attempt") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Status</div>
+        <div class="metric-value">Active</div>
+      </div>
+    </div>
+
+    <%= link_to "View Attempts", @min_cost_flow_challenge ? challenge_path(@min_cost_flow_challenge) : min_cost_flow_attempts_path, class: "btn btn-primary" %>
+  </article>
+
   <% @future_challenges.each do |challenge| %>
     <article class="algorithm-card algorithm-card-disabled">
       <div class="card-header">

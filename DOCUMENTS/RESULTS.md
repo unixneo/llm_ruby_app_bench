@@ -1761,6 +1761,134 @@ Finished in 213.357823s
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
+---
+
+## R0023 - P0023 Minimum Cost Flow Problem Implementation
+
+**Date:** 2026-04-22  
+**Codex Status:** Completed after approved prompt correction
+
+### Summary
+
+Implemented P0023 as a Minimum Cost Flow benchmark.
+
+Implemented:
+
+- `MinCostFlowProblem` Active Record model and migration for persisted minimum-cost-flow fixtures
+- `MinCostFlowFixtures` with five deterministic fixtures from P0023
+- `MinCostFlowSolver` pure Ruby Successive Shortest Path candidate using Bellman-Ford over the residual graph
+- `GemMinCostFlowSolver` OR-Tools `SimpleMinCostFlow` reference wrapper
+- `MinCostFlowSolutionValidator` for conservation, capacity, non-negativity, demand satisfaction, and reported-cost checks
+- `MinCostFlowResultComparison` for optimality and validation comparison
+- `MinCostFlowAttemptRunner` to persist `Attempt` records under prompt `P0023`
+- `/min_cost_flow/attempts` route scope using the existing attempt UI
+- Minimum Cost Flow challenge card on the algorithm index
+- generic attempt display support for minimum-cost-flow result labels
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and challenge index rendering
+
+### Governance Notes
+
+Candidate source/version:
+
+```text
+successive-shortest-path
+successive-shortest-path-v1
+```
+
+Reference version:
+
+```text
+or-tools-simple-min-cost-flow-v1
+```
+
+OR-Tools `SimpleMinCostFlow` API was verified locally with:
+
+```text
+add_arc_with_capacity_and_unit_cost
+set_node_supply
+solve
+optimal_cost
+maximum_flow
+num_arcs
+tail
+head
+flow
+unit_cost
+```
+
+### Approved Prompt Correction
+
+P0023 contained one fixture feasibility error in `mincostflow_parallel_edges_8`.
+
+As written in the prompt:
+
+- source outgoing capacity = `8 + 7 = 15`
+- demand = `16`
+
+That makes the fixture infeasible by definition. OR-Tools returned `infeasible` for that fixture while the other four fixtures solved optimally.
+
+PI explicitly approved the correction:
+
+```text
+Change mincostflow_parallel_edges_8 demand from 16 to 15
+```
+
+The implementation applies that approved correction in `MinCostFlowFixtures`.
+
+### Verified Results
+
+After the approved fixture correction, the focused runner and solver tests established:
+
+```text
+fixture | status | notes
+mincostflow_simple_4 | exact_match | optimal cost 90
+mincostflow_balanced_6 | exact_match | candidate matched OR-Tools
+mincostflow_high_cost_shortcut_5 | exact_match | candidate matched OR-Tools
+mincostflow_capacity_limited_7 | exact_match | candidate matched OR-Tools
+mincostflow_parallel_edges_8 | exact_match | candidate matched OR-Tools after demand correction to 15
+```
+
+All candidate flows satisfied:
+
+- flow conservation at intermediate nodes
+- edge capacity constraints
+- nonnegative flow
+- source outflow equals demand
+- sink inflow equals demand
+- reported total cost matches calculated total cost
+
+### Maintenance Correction
+
+One stale controller test expectation unrelated to P0023 was updated with PI approval:
+
+```text
+Ruby Algorithm Benchmark v0.1.0 -> Ruby Algorithm Benchmark v0.1.2
+```
+
+This change was required because the application header already renders `v0.1.2`.
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Focused P0023 tests:
+
+```bash
+bin/rails test test/models/min_cost_flow_problem_test.rb test/services/gem_min_cost_flow_solver_test.rb test/services/min_cost_flow_solver_test.rb test/services/min_cost_flow_solution_validator_test.rb test/services/min_cost_flow_result_comparison_test.rb test/services/min_cost_flow_attempt_runner_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+23 runs, 179 assertions, 0 failures, 0 errors, 0 skips
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
 ## R0021 - P0021 Assignment Problem Implementation
 
 **Date:** 2026-04-17  

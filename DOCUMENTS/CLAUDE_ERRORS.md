@@ -761,3 +761,113 @@ This is similar to CLE0007 (fixture data errors) but caught by architecture rath
 **Status:** Self-correcting architecture prevented error propagation
 **Affected prompts:** P0021 (documentation only, not implementation)
 
+
+
+---
+
+# CLE0022: Infeasible Fixture Specification in P0023 Min Cost Flow Prompt
+
+**Date:** 2026-04-22  
+**Prompt:** P0023 (Minimum Cost Flow)  
+**Error Type:** Specification Error - Mathematical Infeasibility  
+**Detected By:** Codex during implementation  
+**Phase:** Prompt specification before implementation
+
+## Error Description
+
+Architect (Claude) specified fixture mincostflow_parallel_edges_8 with demand that exceeds source node outgoing capacity, creating a mathematically infeasible problem instance.
+
+**Specified fixture:**
+```ruby
+{
+  name: "mincostflow_parallel_edges_8",
+  nodes: 8,
+  edges: [
+    [0, 1, 8, 3],    # source to node 1, capacity 8
+    [0, 2, 7, 2],    # source to node 2, capacity 7
+    # ... remaining edges
+  ],
+  source: 0,
+  sink: 7,
+  demand: 16,      # ERROR: exceeds capacity
+  description: "Complex network..."
+}
+```
+
+**Mathematical constraint violation:**
+- Source node (node 0) has two outgoing edges with capacities 8 and 7
+- Maximum possible flow from source is 8 plus 7 equals 15
+- Specified demand is 16
+- Therefore the problem instance is infeasible by definition
+
+## Verification
+
+Codex verified against OR-Tools reference implementation:
+- Fixtures 1 through 4: All feasible, OR-Tools returns OPTIMAL status
+- Fixture 5 (mincostflow_parallel_edges_8): Infeasible, OR-Tools cannot solve
+
+This confirms the error is in the prompt specification, not in algorithm implementation or reference solver behavior.
+
+## Root Cause
+
+Architect failed to verify fixture feasibility before documenting the prompt. The error occurred during manual fixture construction when specifying edge capacities and demand without checking the basic constraint that total outgoing capacity from the source must equal or exceed the demand.
+
+This is a fundamental feasibility check that should have been performed before prompt approval. Unlike CLE0021 (manual calculation error on optimal cost), this error blocks implementation entirely because the reference solver cannot produce a solution for comparison.
+
+## Impact
+
+- ❌ **Blocks implementation** - Codex cannot complete P0023 until fixture is corrected
+- ❌ **Blocks testing** - No valid reference solution exists for comparison
+- ✅ **Detected before propagation** - Codex caught error during verification against OR-Tools
+- ✅ **No incorrect code generated** - Implementation halted at feasibility check
+
+**This error type is more severe than CLE0021 because it prevents completion rather than just documenting an incorrect expected value.**
+
+## Why This Happened
+
+When constructing the fixture, Architect focused on creating "complex network with multiple parallel routing options" without validating that the specified demand was achievable given the source node's outgoing capacity. The edge list was constructed incrementally without summing source outgoing capacities to verify feasibility.
+
+This represents a failure to apply basic constraint verification during prompt specification. For network flow problems, source capacity must equal or exceed demand is a fundamental feasibility requirement that should be checked automatically.
+
+## Correction
+
+**Approved correction by PI:**
+Change mincostflow_parallel_edges_8 demand from 16 to 15.
+
+This correction makes the fixture feasible while preserving its intended purpose of testing optimal cost balancing across multiple parallel routing options. With demand equal to maximum source capacity, the fixture still provides meaningful test coverage for the algorithm's ability to distribute flow optimally based on cost.
+
+**Implementation status:**
+Codex will apply the correction and complete P0023 implementation with corrected fixture.
+
+## Pattern Recognition
+
+This error shares characteristics with fixture specification errors (CLE0007) but is more severe because it creates mathematical infeasibility rather than just incorrect expected values. The error pattern is:
+
+1. Architect constructs fixture incrementally
+2. Focuses on problem complexity (multiple paths, parallel edges)
+3. Fails to verify basic feasibility constraints
+4. Documented prompt without validation against reference solver
+
+**Key difference from CLE0021:** That error involved incorrect manual calculation of optimal cost but the problem instance was feasible. This error makes the problem instance itself infeasible, blocking all implementation progress.
+
+## Prevention
+
+For future network flow prompts, Architect should verify:
+1. Source outgoing capacity sum greater than or equal to demand (min cost flow)
+2. Sink incoming capacity sum greater than or equal to demand (min cost flow)
+3. No isolated nodes (except as explicitly intended)
+4. Edge capacity values are positive
+5. For min cost flow, verify feasibility by running reference solver before documenting expected behavior
+
+Better workflow:
+1. Construct fixture data structure
+2. Run reference solver (OR-Tools) to verify feasibility
+3. Document reference solution in prompt
+4. Only then mark as ready for implementation
+
+## Lessons Learned
+
+Mathematical feasibility verification should be mandatory for all optimization problem fixtures. The Architect should not rely on manual verification alone for constraint satisfaction problems. Reference solver verification should be part of the prompt specification process, not just the implementation validation process.
+
+**Status:** Error caught by Codex during implementation, correction approved by PI  
+**Affected prompts:** P0023 fixture 5 (corrected before implementation completion)
