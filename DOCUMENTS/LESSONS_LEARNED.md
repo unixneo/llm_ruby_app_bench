@@ -184,6 +184,35 @@ Architect errors (CLE0001-CLE0011) outnumber coder errors (CE0001-CE0009). When 
 **Remaining Gap:** Coder challenges are limited to obvious premise failures
 **Future Work:** More explicit coder validation checkpoints
 
+### Challenge 4: Verification Asymmetry Is Task-Dependent
+Recent Min Cost Flow documentation and implementation work exposed a narrower asymmetry than "one model is better."
+
+**Observed pattern:**
+- Architect performed competently on high-level algorithm framing and prompt construction
+- Coder performed more reliably on direct repository-state inspection and cross-file verification
+- Coder still failed on UI integration verification when end-to-end checking discipline weakened
+
+**Evidence:**
+- `CLE0013`: Architect specified an infeasible P0023 fixture; Coder caught it by running the reference solver
+- `CLE0014`: Architect repeatedly misreported documentation consistency until Coder verified the actual file state
+- `CE0011`: Coder implemented the min-cost-flow lane but failed to verify the shared scoped UI correctly
+
+**Interpretation:**
+The asymmetry appears strongest for deterministic, externally checkable tasks:
+- file inspection
+- route/state verification
+- cross-file consistency checking
+- reference-solver feasibility checks
+
+It is weaker for:
+- research framing
+- prompt architecture
+- scientific scope decisions
+
+**Current Mitigation:** Direct file inspection and coder-side verification of architect claims
+**Remaining Gap:** Neither LLM role demonstrates reliable self-verification across all task phases
+**Future Work:** Treat role/task effects separately in the paper and avoid overclaiming general model superiority
+
 ---
 
 ## Implications for Future Algorithm Families
@@ -244,7 +273,20 @@ Extra care needed:
 
 **Next Test:** Implement another OR-Tools algorithm to see if pattern holds
 
+### Additional Summary Finding
+
+**Question:** Does one LLM role reliably outperform the other?
+
+**Answer:** The evidence supports a narrower claim. Coder-style workflows outperformed architect self-report on concrete verification tasks, but this appears to be role/task-specific rather than proof of general model superiority.
+
+**Supported finding:**
+1. Direct repository inspection was more reliable than architect self-report for concrete state verification
+2. Reference-solver execution was effective at catching architect prompt infeasibility
+3. Coder reliability advantage did not generalize to all user-visible integration work, as shown by `CE0011`
+
+**Implication:** The project should frame this as verification asymmetry in deterministic tasks, not as a blanket ranking of model quality
+
 ---
 
-**Document Status:** Captures lessons through P0020/R0020
-**Last Updated:** 2026-04-17
+**Document Status:** Captures lessons through P0023/R0023
+**Last Updated:** 2026-04-22
