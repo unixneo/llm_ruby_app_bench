@@ -1572,7 +1572,7 @@ The default full suite took about 193.8 seconds. The skip-flag suite took about 
 
 ---
 
-## R0020 - P0020 Knapsack Reference Gem Blocker
+## R0020a - P0020 Knapsack Reference Gem Blocker
 
 **Date:** 2026-04-17  
 **Codex Status:** Blocked before implementation
@@ -1648,7 +1648,7 @@ This blocked knapsack prompt was superseded by the corrected P0020 VRP prompt be
 
 ---
 
-## R0020 - P0020 Vehicle Routing Problem Implementation
+## R0020b - P0020 Vehicle Routing Problem Implementation
 
 **Date:** 2026-04-17  
 **Codex Status:** Completed
