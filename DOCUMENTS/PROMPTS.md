@@ -1718,3 +1718,191 @@ No new UI routes or views are required.
 **Fixture reuse:** existing MoonPhaseProblem records (no new fixture seeding)
 **New runner:** MoonPhaseFullAttemptRunner under prompt P0026
 **PI approval:** 2026-04-22
+
+---
+
+# P0027: N-Queens Problem
+
+**Date:** 2026-04-23
+**Status:** Ready for implementation
+**Architect:** Claude
+**Reference gem:** `n_queens` v1.0.0 (PI-authored, published https://rubygems.org/gems/n_queens)
+
+## C005 Compliance: gem verification
+
+**Gem:** `n_queens` v1.0.0
+**Author:** Tim Bass (PI)
+**Published:** 2026-04-23
+**Source:** https://github.com/unixneo/n_queens
+**Verification:** Full RSpec suite passes, gem builds and pushes cleanly
+
+**Verified API:**
+```ruby
+require "n_queens"
+
+result = NQueens::Solver.new(n).solve
+result.count      # => Integer solution count
+result.solutions  # => Array of placement arrays (nil for n >= 18)
+result.method     # => :backtracking or :parallel_bitmask
+result.duration   # => Float elapsed seconds
+
+NQueens::KNOWN_COUNTS[n]  # => Integer (OEIS A000170, n=1..15)
+NQueens::VERSION           # => "1.0.0"
+```
+
+**Add to Gemfile:**
+```ruby
+gem "n_queens", "~> 1.0"
+```
+
+
+## Problem Statement
+
+Implement a native Ruby N-Queens solver and compare against the `n_queens` gem reference.
+
+**Problem definition:**
+- Input: Integer n (board size)
+- Goal: Find all valid placements of n queens on an n×n chessboard such that no two queens share a row, column, or diagonal
+- Output: Total count of valid solutions and the solutions array for small n
+- Constraint: No two queens may attack each other
+
+**Complexity:** NP-complete decision variant; exact solution count requires exhaustive search
+
+## Algorithm: Backtracking with Pruning
+
+**Overview:**
+Place queens row by row. For each row, try each column. Before placing, check that the candidate column and both diagonals are not already occupied. If valid, place the queen and recurse to the next row. If no valid column exists, backtrack.
+
+**Key concepts:**
+- **Column tracking:** Boolean array of size n; column[c] is true if column c is occupied
+- **Main diagonal:** row - col is constant along each main diagonal; offset by n-1 to keep index positive
+- **Anti-diagonal:** row + col is constant along each anti-diagonal
+- **Backtracking:** undo placement and try next column when no solution exists from current state
+
+**Algorithm steps:**
+
+1. Initialize boolean arrays for columns, main diagonals, and anti-diagonals
+2. Call recursive place_queen starting at row 0 with empty placement array
+3. At each row, iterate columns 0 to n-1
+4. Skip column if column, main diagonal, or anti-diagonal is marked occupied
+5. Mark column and both diagonals as occupied, push column to placement, recurse to row+1
+6. When row equals n, record placement as a valid solution
+7. Backtrack: unmark column and diagonals, pop placement
+
+**Reference materials:**
+- OEIS A000170: Number of ways of placing n non-attacking queens on an n×n board
+- NQueens::KNOWN_COUNTS from `n_queens` gem for validation
+
+## Test Fixtures
+
+Create five N-Queens fixtures. Fixtures are simple integer board sizes.
+The NQueensFixtures class seeds NQueensProblem records.
+
+
+### Fixture 1: nqueens_4
+```ruby
+{ name: "nqueens_4", n: 4, description: "4x4 board - 2 solutions, manually verifiable" }
+```
+**Known solution count:** 2 (OEIS A000170)
+
+### Fixture 2: nqueens_6
+```ruby
+{ name: "nqueens_6", n: 6, description: "6x6 board - 4 solutions" }
+```
+**Known solution count:** 4 (OEIS A000170)
+
+### Fixture 3: nqueens_8
+```ruby
+{ name: "nqueens_8", n: 8, description: "Classic 8-queens problem - 92 solutions" }
+```
+**Known solution count:** 92 (OEIS A000170)
+
+### Fixture 4: nqueens_10
+```ruby
+{ name: "nqueens_10", n: 10, description: "10x10 board - 724 solutions" }
+```
+**Known solution count:** 724 (OEIS A000170)
+
+### Fixture 5: nqueens_12
+```ruby
+{ name: "nqueens_12", n: 12, description: "12x12 board - 14200 solutions, tests performance" }
+```
+**Known solution count:** 14200 (OEIS A000170)
+
+## Reference Implementation
+
+Use `n_queens` gem:
+
+```ruby
+require "n_queens"
+
+result = NQueens::Solver.new(n).solve
+reference_count = result.count
+reference_solutions = result.solutions  # nil for n >= 18, array otherwise
+```
+
+**Verification:** `NQueens::KNOWN_COUNTS[n]` provides OEIS A000170 ground truth.
+Both candidate and reference counts must match KNOWN_COUNTS exactly.
+
+
+   - no two queens share a main diagonal (row - col values are distinct)
+   - no two queens share an anti-diagonal (row + col values are distinct)
+4. **Solutions array size** (for n <= 10): solutions.size equals count
+5. **OEIS match:** count equals NQueens::KNOWN_COUNTS[n] exactly
+
+## Comparison Metrics
+
+**Primary metric:** candidate count vs reference count vs KNOWN_COUNTS[n]
+
+All three must agree exactly. This is an exact combinatorial benchmark with no tolerance.
+
+**Secondary metrics:**
+- Execution time (candidate vs reference)
+- Solutions array validity for n <= 10
+
+**Expected LLM failure modes:**
+- Off-by-one in diagonal index calculation
+- Incorrect main diagonal indexing (must offset by n-1 to avoid negative index)
+- Counting duplicate solutions
+- Missing solutions due to incorrect conflict detection
+- Premature termination before all rows are filled
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures pass** - candidate count matches KNOWN_COUNTS exactly
+2. ✅ **Reference match** - candidate count matches n_queens gem exactly
+3. ✅ **Solution validity** (n <= 10) - each placement satisfies no-attack constraint
+4. ✅ **Tests pass** - all unit tests green
+5. ✅ **Performance acceptable** - n=12 completes in under 60 seconds
+
+## Implementation Notes
+
+**Fixtures class:** Create `NQueensFixtures` class, call from `seeds.rb` as
+`NQueensFixtures.seed!` and `NQueensAttemptRunner.new.run_all`
+
+**Do not write fixture data directly into seeds.rb.**
+
+**Model:** Create `NQueensProblem` Active Record model with columns:
+- name (string)
+- n (integer)
+- description (string)
+
+**Testing strategy:**
+- n=4 with 2 solutions is manually verifiable
+- n=8 with 92 solutions is the canonical benchmark
+- n=12 tests performance with 14200 solutions
+
+**UI considerations:**
+- Display board size and solution count
+- Show candidate vs reference count side by side
+- For small n (n <= 8), optionally render one solution as a chessboard grid
+- Compare execution time candidate vs reference
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved reference:** `n_queens` gem v1.0.0 (PI-authored)
+**Approved candidate algorithm:** Backtracking with pruning (column + diagonal boolean arrays)
+**Ground truth:** NQueens::KNOWN_COUNTS (OEIS A000170)
+**PI approval:** 2026-04-23

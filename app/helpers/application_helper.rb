@@ -35,6 +35,12 @@ module ApplicationHelper
         complexity: "Numerical astronomy problem using trigonometric approximation and time conversion.",
         relevance: "Models lunar phase estimation, event timing, ephemeris-backed reference checks, and UTC-sensitive scientific computation."
       }
+    when "N-Queens Problem"
+      {
+        domain: "Combinatorics",
+        complexity: "NP-complete decision variant; exact counting requires exhaustive search with pruning.",
+        relevance: "Models exact combinatorial search, constraint pruning quality, and correctness-sensitive counting."
+      }
     when "Minimum Cost Flow Problem"
       {
         domain: "Operations Research",

@@ -18,6 +18,7 @@ gem "stimulus-rails"
 gem "jbuilder"
 gem "or-tools"
 gem "astronoby", "~> 0.9.0"
+gem "n_queens", "~> 1.0"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

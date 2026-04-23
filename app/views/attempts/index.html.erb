@@ -4,6 +4,7 @@ when "Vehicle Routing Problem" then "VRP Attempts"
 when "Assignment Problem" then "Assignment Attempts"
 when "Job Shop Scheduling Problem" then "Job Shop Attempts"
 when "Moon Phase Calculations" then "Moon Phase Attempts"
+when "N-Queens Problem" then "N-Queens Attempts"
 when "Minimum Cost Flow Problem" then "Min Cost Flow Attempts"
 when "Max Flow Problem" then "Max Flow Attempts"
 else "TSP Attempts"
@@ -13,6 +14,7 @@ when "Vehicle Routing Problem" then vrp_attempts_path
 when "Assignment Problem" then assignment_attempts_path
 when "Job Shop Scheduling Problem" then job_shop_attempts_path
 when "Moon Phase Calculations" then moon_phase_attempts_path
+when "N-Queens Problem" then n_queens_attempts_path
 when "Minimum Cost Flow Problem" then min_cost_flow_attempts_path
 when "Max Flow Problem" then max_flow_attempts_path
 else attempts_path
@@ -60,10 +62,20 @@ end %>
 <% if @attempts.any? %>
   <section class="attempt-grid">
     <% @attempts.each do |attempt| %>
+      <% attempt_show_path = case attempt.route_path_name
+      when :vrp then vrp_attempt_path(attempt)
+      when :assignment then assignment_attempt_path(attempt)
+      when :job_shop then job_shop_attempt_path(attempt)
+      when :moon_phase then moon_phase_attempt_path(attempt)
+      when :n_queens then n_queens_attempt_path(attempt)
+      when :min_cost_flow then min_cost_flow_attempt_path(attempt)
+      when :max_flow then max_flow_attempt_path(attempt)
+      else attempt_path(attempt)
+      end %>
       <article class="attempt-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :moon_phase ? moon_phase_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt)))))) %></h2>
+            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt_show_path %></h2>
             <p class="muted-line"><%= attempt.prompt_id %> · <%= attempt.challenge.name %> · <%= attempt.algorithm_version %> · <%= attempt.reference_version %></p>
           </div>
           <span class="badge <%= attempt.status_badge_class %>"><%= attempt.status_label %></span>
@@ -92,7 +104,7 @@ end %>
           </div>
         </div>
 
-        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :moon_phase ? moon_phase_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt)))))), class: "btn btn-primary" %>
+        <%= link_to "Review comparison", attempt_show_path, class: "btn btn-primary" %>
       </article>
     <% end %>
   </section>

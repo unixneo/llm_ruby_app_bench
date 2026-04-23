@@ -151,3 +151,47 @@
 1. Test `knapsack` gem installation and API
 2. Investigate RGL gem capabilities
 3. Update UI placeholders based on verified results
+
+---
+
+## **n_queens gem (PI-authored)**
+
+**Date added:** 2026-04-23
+**Gem name:** `n_queens`
+**Version:** 1.0.0
+**Author:** Tim Bass (PI)
+**RubyGems URL:** https://rubygems.org/gems/n_queens
+**Source:** https://github.com/unixneo/n_queens
+**License:** MIT
+
+**Verification status:** VERIFIED - PI-authored, published, and confirmed installable
+
+**API (verified from source):**
+```ruby
+require "n_queens"
+
+result = NQueens::Solver.new(n).solve
+result.count      # => Integer (e.g. 92 for n=8)
+result.solutions  # => Array of placement arrays, or nil for n >= 18
+result.method     # => Symbol :backtracking | :parallel_bitmask
+result.duration   # => Float elapsed seconds
+
+NQueens::KNOWN_COUNTS[8]  # => 92 (OEIS A000170 ground truth, n=1..15)
+NQueens::VERSION           # => "1.0.0"
+```
+
+**Method dispatch:**
+- n <= 10: backtracking with pruning (returns full solutions array)
+- n 11-17: parallel bitmasking (returns full solutions array)
+- n >= 18: parallel bitmasking to file (result.solutions returns nil)
+
+**Dependencies:** `parallel` gem
+
+**Research value:**
+- PI-authored reference implementation provides stronger methodological ground truth
+  than a third-party gem
+- KNOWN_COUNTS provides OEIS A000170 peer-reviewed validation values
+- No external solver dependency (pure Ruby)
+- Distinct error surface: constraint propagation, diagonal conflict detection, bitmask logic
+
+**Assessment:** APPROVED for use as reference implementation in N-Queens benchmark prompt P0027

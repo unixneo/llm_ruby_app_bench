@@ -149,6 +149,8 @@ GEM
     minitar (0.12.1)
     minitest (5.27.0)
     msgpack (1.8.0)
+    n_queens (1.0.0)
+      parallel (~> 1.26)
     net-imap (0.6.3)
       date
       net-protocol
@@ -347,6 +349,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   minitest (< 6)
+  n_queens (~> 1.0)
   or-tools
   puma (>= 5.0)
   rails (~> 7.2.3)

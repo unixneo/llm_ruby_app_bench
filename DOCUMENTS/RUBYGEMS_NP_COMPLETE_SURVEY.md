@@ -27,7 +27,7 @@ Temporary test gems were installed under `/tmp/codex_np_gems`; the Rails app `Ge
 | 2-SAT | `ac-library-rb` | Loads and solves 2-SAT | Polynomial | Useful reference, not hard enough |
 | Graph algorithms | `rgl` | Loads and runs Dijkstra | Mostly polynomial | Reject for NP-hard benchmark |
 | Sudoku/CSP | `sudoku-solver` and others | Not functionally verified; one tested gem failed | NP-complete as generalized problem | Not ready |
-| N-Queens | none verified | No suitable solver found | NP-complete decision variant | Reject for now |
+| N-Queens | `n_queens` (PI-authored) | Published to RubyGems.org, all specs pass | NP-complete decision variant | **APPROVED** - PI-authored reference |
 | Graph Coloring | none verified | No suitable solver found | NP-complete | Reject |
 
 Final survey recommendation: **Ravensat/SAT is the best verified non-OR direction** if the project needs a domain outside routing/operations research.
@@ -320,3 +320,56 @@ Those domains are outside the NP-hard/NP-complete target of this file. The stron
 - `astronoby`: astronomy and astrometry calculations such as Moon phases and ephemeris-backed Solar System positions.
 
 These are promising scientific-computing benchmarks, but they should not be mixed into the NP-complete survey without changing the comparison frame. Their validation model requires numeric tolerances, unit discipline, coordinate-frame checks, and time-system checks rather than exact combinatorial optimality.
+
+---
+
+## N-Queens: `n_queens` gem (PI-authored)
+
+**Date added:** 2026-04-23
+**Gem:** `n_queens` v1.0.0
+**Author:** Tim Bass (PI)
+**RubyGems:** https://rubygems.org/gems/n_queens
+**Source:** https://github.com/unixneo/n_queens
+
+**Status:** VERIFIED AND PUBLISHED
+
+**Smoke test:**
+```ruby
+require "n_queens"
+result = NQueens::Solver.new(8).solve
+result.count     # => 92
+result.solutions # => Array of 92 valid placements
+NQueens::KNOWN_COUNTS[8] # => 92
+```
+
+**RSpec suite (all passing):**
+- n=1 count equals 1
+- n=4 count equals 2
+- n=8 count equals 92
+- n=8 solutions array has 92 entries
+- all n=8 placements are valid (no shared column or diagonal)
+- KNOWN_COUNTS[8] equals 92
+- VERSION is non-empty string
+
+**Why this is the strongest non-OR benchmark candidate:**
+
+1. PI-authored reference — methodologically stronger than any third-party gem
+2. OEIS A000170 provides peer-reviewed ground truth for solution counts
+3. Exact validation — either count matches or it does not, no tolerance required
+4. Completely distinct error surface from OR-Tools and astronoby
+5. No external solver dependency — pure Ruby
+6. Multiple algorithm implementations available for comparison (backtracking, bitmask, parallel)
+
+**Approved for:** P0027 N-Queens benchmark
+
+---
+
+## Updated Survey Recommendation
+
+The strongest verified non-OR candidates in order of priority:
+
+1. **N-Queens via `n_queens`** (PI-authored) — APPROVED, published 2026-04-23
+2. **SAT via `ravensat`** — verified, good discrete reasoning benchmark
+3. **2-SAT via `ac-library-rb`** — verified but polynomial, lower research value
+
+**Survey Status:** Updated 2026-04-23

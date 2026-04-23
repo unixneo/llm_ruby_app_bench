@@ -1761,7 +1761,6 @@ Finished in 213.357823s
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
----
 
 ## R0021 - P0021 Assignment Problem Implementation
 
@@ -2652,6 +2651,131 @@ Output:
 ```text
 135 runs, 906 assertions, 0 failures, 0 errors, 13 skips
 Finished in 63.155663s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+
+## R0027 - P0027 N-Queens Problem Implementation
+
+**Date:** 2026-04-23  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented P0027 as an exact N-Queens benchmark lane with native Ruby candidate and mature gem reference.
+
+Implemented:
+
+- `NQueensProblem` model and migration-backed fixture persistence
+- `NQueensFixtures` with five OEIS-backed fixtures (`n=4,6,8,10,12`)
+- `NQueensSolver` native Ruby backtracking candidate (`backtracking-v1`)
+- `GemNQueensSolver` wrapper for `n_queens` gem reference (`n_queens-v1.0.0`)
+- `NQueensSolutionValidator` for board-size, count, and placement validity checks
+- `NQueensResultComparison` for exact count comparison and status classification
+- `NQueensAttemptRunner` seeded under prompt `P0027`
+- shared attempts UI integration for `/n_queens/attempts`
+- challenge index card and challenge redirect wiring for N-Queens
+- focused tests across model, services, runner, and controller integration
+
+### Governance Notes
+
+Candidate source/version:
+
+```text
+backtracking
+backtracking-v1
+```
+
+Reference version:
+
+```text
+n_queens-v1.0.0
+```
+
+P0027 required exact count matching (no tolerance).  
+Candidate/reference counts were validated against fixture ground truth (`OEIS A000170` values reflected in fixture expectations and gem known counts behavior).
+
+### Verified Results
+
+After running the N-Queens attempt runner, five `P0027` attempts were recorded:
+
+```text
+fixture | status | count difference
+nqueens_4  | exact_match | 0.0
+nqueens_6  | exact_match | 0.0
+nqueens_8  | exact_match | 0.0
+nqueens_10 | exact_match | 0.0
+nqueens_12 | exact_match | 0.0
+```
+
+Observed candidate/reference behavior:
+
+- all fixtures matched exactly on total solution count
+- no invalid placements were accepted by validator checks
+- candidate remained in the exact-count lane (no heuristic fallback)
+
+### UI Verification
+
+P0027 UI wiring was verified through controller/integration tests covering:
+
+- challenge index includes N-Queens card and redirect
+- `/n_queens/attempts` route scope resolves correctly
+- shared attempts pages render N-Queens attempt metadata and count-difference labels
+
+PI subsequently confirmed the N-Queens UI was reasonable during manual browser review.
+
+### Verification
+
+Dependency install:
+
+```bash
+bundle install
+```
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Focused P0027 slice:
+
+```bash
+bin/rails test test/models/n_queens_problem_test.rb test/services/n_queens_solver_test.rb test/services/gem_n_queens_solver_test.rb test/services/n_queens_solution_validator_test.rb test/services/n_queens_result_comparison_test.rb test/services/n_queens_attempt_runner_test.rb test/controllers/n_queens_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+31 runs, 149 assertions, 0 failures, 0 errors, 0 skips
+Finished in 2.579540s
+```
+
+Full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+151 runs, 1202 assertions, 0 failures, 0 errors, 0 skips
+Finished in 53.760018s
+```
+
+Single-worker skip-flag suite:
+
+```bash
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+151 runs, 968 assertions, 0 failures, 0 errors, 13 skips
+Finished in 57.701296s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.

@@ -85,6 +85,8 @@ class Attempt < ApplicationRecord
       JobShopProblem.find_by(name: fixture_name)
     elsif challenge.name == "Moon Phase Calculations"
       MoonPhaseProblem.find_by(name: fixture_name)
+    elsif challenge.name == "N-Queens Problem"
+      NQueensProblem.find_by(name: fixture_name)
     elsif challenge.name == "Minimum Cost Flow Problem"
       MinCostFlowProblem.find_by(name: fixture_name)
     elsif challenge.name == "Max Flow Problem"
@@ -106,6 +108,8 @@ class Attempt < ApplicationRecord
       "Makespan Difference"
     when "Moon Phase Calculations"
       moon_phase_difference_label
+    when "N-Queens Problem"
+      "Count Difference"
     when "Max Flow Problem"
       "Flow Difference"
     else
@@ -122,6 +126,8 @@ class Attempt < ApplicationRecord
     when "Job Shop Scheduling Problem"
       "Candidate Schedule"
     when "Moon Phase Calculations"
+      "Candidate Result"
+    when "N-Queens Problem"
       "Candidate Result"
     when "Minimum Cost Flow Problem"
       "Candidate Flow"
@@ -141,6 +147,8 @@ class Attempt < ApplicationRecord
     when "Job Shop Scheduling Problem"
       "Reference Schedule"
     when "Moon Phase Calculations"
+      "Reference Result"
+    when "N-Queens Problem"
       "Reference Result"
     when "Minimum Cost Flow Problem"
       "Reference Flow"
@@ -165,6 +173,8 @@ class Attempt < ApplicationRecord
       :job_shop
     when "Moon Phase Calculations"
       :moon_phase
+    when "N-Queens Problem"
+      :n_queens
     when "Minimum Cost Flow Problem"
       :min_cost_flow
     when "Max Flow Problem"
@@ -198,6 +208,15 @@ class Attempt < ApplicationRecord
       return result_data.fetch("major_events").map do |event|
         "#{event.fetch("phase")}: #{event.fetch("time")}"
       end.join(" | ")
+    end
+
+    if result_data.key?("count")
+      return [
+        "n=#{result_data.fetch("n", "n/a")}",
+        "count=#{result_data.fetch("count", "n/a")}",
+        "method=#{result_data.fetch("method", "n/a")}",
+        "duration=#{result_data.fetch("duration", "n/a")}"
+      ].join(" | ")
     end
 
     if result_data.key?("phase_name")

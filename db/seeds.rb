@@ -7,6 +7,8 @@ JobShopAttemptRunner.new.run_all
 MoonPhaseFixtures.seed!
 MoonPhaseAttemptRunner.new.run_all
 MoonPhaseFullAttemptRunner.new.run_all
+NQueensFixtures.seed!
+NQueensAttemptRunner.new.run_all
 MinCostFlowFixtures.seed!
 MinCostFlowAttemptRunner.new.run_all
 MaxFlowFixtures.seed!

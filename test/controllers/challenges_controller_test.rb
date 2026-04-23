@@ -7,6 +7,7 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     @assignment_challenge = Challenge.create!(name: "Assignment Problem")
     @job_shop_challenge = Challenge.create!(name: "Job Shop Scheduling Problem")
     @moon_phase_challenge = Challenge.create!(name: "Moon Phase Calculations")
+    @n_queens_challenge = Challenge.create!(name: "N-Queens Problem")
     @min_cost_flow_challenge = Challenge.create!(name: "Minimum Cost Flow Problem")
     @max_flow_challenge = Challenge.create!(name: "Max Flow Problem")
     create_attempt(@challenge, "fixture-brute-force-v1", "brute-force-v1")
@@ -15,6 +16,7 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     create_attempt(@assignment_challenge, "assignment_tiny_3x3", "hungarian-v1")
     create_attempt(@job_shop_challenge, "jobshop_tiny_3x3", "branch-and-bound-v1")
     create_attempt(@moon_phase_challenge, "moon_phase_first_quarter_2024_05", "meeus-v1")
+    create_attempt(@n_queens_challenge, "nqueens_8", "backtracking-v1")
     create_attempt(@min_cost_flow_challenge, "mincostflow_simple_4", "successive-shortest-path-v1")
     create_attempt(@max_flow_challenge, "maxflow_simple_4", "edmonds-karp-v1")
   end
@@ -47,6 +49,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Exact branch-and-bound candidate schedules"
     assert_includes response.body, "Moon Phase Calculations"
     assert_includes response.body, "Meeus-style native Ruby phase calculations"
+    assert_includes response.body, "N-Queens Problem"
+    assert_includes response.body, "Exact native Ruby backtracking counts"
     assert_includes response.body, "Minimum Cost Flow Problem"
     assert_includes response.body, "Successive-shortest-path candidate results"
     assert_includes response.body, "Max Flow Problem"
@@ -91,6 +95,12 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to moon_phase_attempts_url
   end
 
+  test "challenge show redirects n-queens challenge to n-queens attempts index" do
+    get challenge_url(@n_queens_challenge)
+
+    assert_redirected_to n_queens_attempts_url
+  end
+
   test "challenge show redirects max flow challenge to max flow attempts index" do
     get challenge_url(@max_flow_challenge)
 
@@ -121,6 +131,10 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
 
   test "moon phase attempts index is scoped under moon phase path" do
     assert_equal "/moon_phase/attempts", moon_phase_attempts_path
+  end
+
+  test "n-queens attempts index is scoped under n-queens path" do
+    assert_equal "/n_queens/attempts", n_queens_attempts_path
   end
 
   test "max flow attempts index is scoped under max flow path" do
