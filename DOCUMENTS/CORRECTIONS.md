@@ -328,3 +328,55 @@ SUCCESS CRITERIA:
 **Applies to:** All UI-affecting prompts going forward  
 **Enforcement:** Required checkpoint in prompt templates
 
+---
+
+## C009 - Commit Attribution Trailers Required
+
+**Date:** 2026-04-23  
+**Addresses:** Commit attribution ambiguity when multiple actors share one Git identity
+
+**Problem:**
+
+Commit history currently uses a shared Git author identity (`unixneo`) for human PI, Codex, and Claude activity. This makes post-hoc attribution ambiguous and weakens research traceability for who made architectural, coding, and governance changes.
+
+**Correction:**
+
+All commits must include these trailers in the commit message body:
+
+- `Agent: codex|claude|human`
+- `Session: <id>`
+- `Role: architect|coder|pi`
+
+Example:
+
+```
+Update prompt archive split and results numbering
+
+Agent: codex
+Session: 019daf32-6883-7b42-a061-df8acc86da42
+Role: coder
+```
+
+**Rules:**
+
+1. `Agent` must identify who performed the work.
+2. `Session` must be the active runtime/session identifier for that actor.
+3. `Role` must match the responsibility of that change (`architect`, `coder`, or `pi`).
+4. If a commit contains mixed authorship, split into separate commits per actor.
+5. Commits missing any trailer are non-compliant.
+
+**Enforcement:**
+
+- Local: use a commit template that includes the three trailer lines.
+- CI/review: reject commits to `main` that do not include all three trailers.
+- Documentation: when citing a commit in `RESULTS.md` or error logs, use trailer metadata as the source of actor attribution.
+
+**Scope:**
+
+Applies to all repository commits going forward, including documentation-only commits.
+
+---
+
+**Status:** Active  
+**Applies to:** All commits to this repository  
+**Enforcement:** Required commit trailers + CI/review gate

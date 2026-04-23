@@ -79,7 +79,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 **Error Documentation:**
 - 17 Claude/Architect errors (CLE0001-CLE0017)
 - 10 Codex/Coder errors (CE0001-CE0010)
-- 8 active corrections (C001-C008)
+- 9 active corrections (C001-C009)
 
 **Recent Major Findings:**
 
@@ -167,7 +167,7 @@ llm_ruby_app_bench/
 │   ├── RESULTS.md          # Implementation results (R0001-R0028)
 │   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0017)
 │   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
-│   ├── CORRECTIONS.md      # Active corrections (C001-C008)
+│   ├── CORRECTIONS.md      # Active corrections (C001-C009)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
 │   └── ABSTRACT.md         # Research abstract
 ├── app/
@@ -417,7 +417,7 @@ PATH-prefixed commands leaked into results. Fixed with standard Rails binstubs.
 - 2 fixtures show perfect distance match (0.0 difference)
 - Largest gap: 9.043 units on 20-customer problem (heuristic vs optimization)
 
-## Process Corrections (C001-C008)
+## Process Corrections (C001-C009)
 
 **C001 - PI Approval for Algorithmic Decisions:**
 Architect must present options, state consequences, wait for approval, document in prompt.
@@ -442,6 +442,9 @@ When asked for "all" or "complete list", verify count explicitly, never present 
 
 **C008 - Mandatory UI Verification for UI Changes:**
 Any change touching views, routes, controllers, CSS, or user-visible layout requires browser/server verification and reporting.
+
+**C009 - Commit Attribution Trailers Required:**
+All commits must include `Agent`, `Session`, and `Role` trailers for actor traceability.
 
 ## Experimental Methodology
 
@@ -519,7 +522,7 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 ---
 
-**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (2 prompts), N-Queens complete (1 prompt), SAT complete (1 prompt), 17 Claude errors, 10 Codex errors, 8 corrections active
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (2 prompts), N-Queens complete (1 prompt), SAT complete (1 prompt), 17 Claude errors, 10 Codex errors, 9 corrections active
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 

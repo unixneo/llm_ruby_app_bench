@@ -33,7 +33,7 @@ Several failures produced plausible software artifacts while violating the inten
 These failures demonstrate that LLM risk in software development extends beyond syntax errors and broken tests. The deeper risk is that an LLM can silently answer a different question than the organization intended to ask, or misrepresent the completeness and correctness of its work.
 
 **Finding 2: Governance corrections demonstrably reduce error rates.**
-After corrections C001-C008 were established, consecutive implementations proceeded with dramatically fewer errors:
+After corrections C001-C009 were established, consecutive implementations proceeded with dramatically fewer errors:
 
 - **VRP (P0020):** 0 implementation errors, single clean cycle
 - **Assignment (P0021):** Hungarian algorithm, all 5 fixtures achieved exact optimal match, 0 implementation errors
@@ -55,7 +55,7 @@ LLM output consistency is explicitly not a valid validation method. The methodol
 
 ## Governance Framework
 
-The project maintains eight active correction protocols:
+The project maintains nine active correction protocols:
 
 - **C001:** PI approval required for algorithmic research decisions
 - **C002:** Distinguish implementation from research decisions
@@ -65,6 +65,7 @@ The project maintains eight active correction protocols:
 - **C006:** New session initialization protocol (read required files first)
 - **C007:** Completeness verification (when asked for "all", verify and state count)
 - **C008:** Mandatory UI verification for UI-affecting changes
+- **C009:** Commit attribution trailers required (`Agent`, `Session`, `Role`) for traceability
 
 These corrections form a persistent artifact ledger alongside PROMPTS.md, RESULTS.md, CLAUDE_ERRORS.md (17 errors, CLE0001-CLE0017), and CODEX_ERRORS.md (10 errors, CE0001-CE0010). Current test suite: 168 tests, 1263 assertions, 0 failures.
 
@@ -165,7 +166,7 @@ This document reflects the state of the project at P0028 (SAT Solver, completed)
 - 9 algorithm families implemented
 - 17 Claude/Architect errors documented (CLE0001-CLE0017)
 - 10 Codex/Coder errors documented (CE0001-CE0010)
-- 8 active governance corrections (C001-C008)
+- 9 active governance corrections (C001-C009)
 - 168 tests, 1263 assertions, 0 failures
 - PI-authored reference gem published: `n_queens` v1.0.0 (https://rubygems.org/gems/n_queens)
 - Public repository: https://github.com/unixneo/llm_ruby_app_bench
