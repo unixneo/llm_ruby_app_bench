@@ -25,6 +25,17 @@ class MoonPhaseAttemptsControllerTest < ActionDispatch::IntegrationTest
       status: "feasible",
       difference: 1.166666666667
     )
+    Attempt.create!(
+      prompt_id: "P0026",
+      challenge: @challenge,
+      fixture_name: "moon_phase_first_quarter_2024_05",
+      algorithm_version: "meeus-full-corrections-v1",
+      reference_version: "astronoby-v0.9.0",
+      candidate_result: JSON.pretty_generate(daily_result_hash("meeus-full-corrections")),
+      reference_result: JSON.pretty_generate(daily_result_hash("astronoby")),
+      status: "feasible",
+      difference: 0.00012
+    )
   end
 
   test "shows moon phase attempts index under scoped path" do
@@ -37,6 +48,7 @@ class MoonPhaseAttemptsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Astronomy"
     assert_includes response.body, "Max Fraction Difference"
     assert_includes response.body, "Max Event Offset (minutes)"
+    assert_includes response.body, "meeus-full-corrections-v1"
   end
 
   test "shows moon phase attempt detail with scoped interpretation form" do

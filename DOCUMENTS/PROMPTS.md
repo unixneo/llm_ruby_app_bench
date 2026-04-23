@@ -1496,3 +1496,225 @@ For phase event fixtures:
 **Ephemeris dependency:** de421.bsp (17 MB, one-time download to tmp/, gitignored)
 **README update required:** Yes - document ephemeris download step in setup instructions
 **PI approval:** 2026-04-22
+
+
+---
+
+# P0026: Moon Phase Calculations - Full Meeus Correction Series
+
+**Date:** 2026-04-22
+**Status:** Ready for implementation
+**Architect:** Claude
+**Algorithm:** meeus-full-corrections-v1
+**Builds on:** P0025 (meeus-v1)
+
+## Purpose and Research Context
+
+P0025 implemented `meeus-v1` using a simplified Jean Meeus approach:
+- epoch-based phase fraction from synodic month arithmetic
+- basic Chapter 48 illuminated fraction calculation
+- event finding via phase fraction search
+
+R0025 showed that `meeus-v1` produces:
+- daily fraction differences well within 0.02 tolerance
+- monthly event time offsets of approximately 70 seconds later than astronoby
+
+The 70-second systematic offset indicates the simplified implementation omits the
+higher-order planetary correction terms that Meeus Chapter 47 and Chapter 49 require
+for sub-minute accuracy.
+
+P0026 introduces `meeus-full-corrections-v1` as a distinct versioned algorithm that
+implements the full correction series. This allows the attempts table to record both
+versions and make the accuracy improvement directly visible as a comparative finding.
+
+## Research Question
+
+Does implementing the full Meeus Chapter 47 and Chapter 49 correction series reduce
+the systematic event time offset from ~70 seconds to under 10 seconds compared to
+the astronoby reference?
+
+
+## Algorithm: meeus-full-corrections-v1
+
+**What meeus-v1 implemented (simplified approach):**
+- Julian Day Number from Gregorian calendar conversion
+- Phase fraction from days elapsed since known new moon epoch divided by synodic month
+- Illuminated fraction from basic elongation calculation (Chapter 48 first-order terms only)
+- Event finding by searching phase fraction near 0.0, 0.25, 0.5, 0.75
+
+**What meeus-full-corrections-v1 must add:**
+
+### 1. Full Moon position series (Meeus Chapter 47)
+
+The Moon's ecliptic longitude requires summing the full periodic term table.
+Key additional terms beyond the simplified version:
+
+- Mean elongation D
+- Sun's mean anomaly M
+- Moon's mean anomaly M'
+- Moon's argument of latitude F
+- Additional argument A1 (Venus perturbation: 119.75 + 131.849 * T)
+- Additional argument A2 (Jupiter perturbation: 53.09 + 479264.290 * T)
+- Additional argument A3 (flattening correction: 313.45 + 481266.484 * T)
+
+The longitude sum requires all 60 periodic terms from Table 47.A.
+The latitude sum requires all 60 periodic terms from Table 47.B.
+Both sums must include the A1, A2, A3 additive corrections.
+
+### 2. Full phase event correction series (Meeus Chapter 49)
+
+For each major phase event the simplified meeus-v1 uses only the JDE approximation.
+The full series adds 25 correction terms per phase type:
+
+For new moon and full moon events, the corrections include:
+- E factor for Sun's anomaly terms (accounts for eccentricity of Earth's orbit)
+- M (Sun's anomaly), M' (Moon's anomaly), F (argument of latitude)
+- Omega (Moon's longitude of ascending node)
+- Full 25-term correction table from Table 49.A (new/full moon)
+- Additional A1 through A14 planetary corrections from Table 49.B
+
+For quarter moon events the corrections include:
+- 25-term correction table from Table 49.A (quarters)
+- Additional W correction term for quarter phases specifically
+
+### 3. Tighter tolerances
+
+Because `meeus-full-corrections-v1` targets higher accuracy, the success criteria
+use tighter tolerances than P0025:
+- illuminated_fraction tolerance: 0.005 (was 0.02)
+- phase_fraction tolerance: 0.005 (was 0.02)
+- event time tolerance: 2 minutes (was 60 minutes)
+
+
+## Candidate Implementation
+
+Create a new class `MoonPhaseFullCalculator` (distinct from P0025's `MoonPhaseCalculator`).
+Create a new class `MoonPhaseFullEventFinder` (distinct from P0025's `MoonPhaseEventFinder`).
+
+**Do not modify the existing meeus-v1 classes.** Both versions must coexist so the
+attempts table can record results from both algorithms independently.
+
+**Algorithm version string:** `meeus-full-corrections-v1`
+
+**Required methods (same interface as meeus-v1):**
+
+MoonPhaseFullCalculator:
+- initialize: accepts a UTC Date object
+- illuminated_fraction: returns Float between 0.0 and 1.0
+- phase_fraction: returns Float between 0.0 and 1.0
+- phase_name: returns Symbol
+
+MoonPhaseFullEventFinder:
+- initialize: accepts year and month integers
+- major_events: returns array of hashes with :phase and :time keys
+
+**Key implementation requirements:**
+
+1. T value must use Julian centuries from J2000.0:
+   T = (JDE - 2451545.0) / 36525.0
+
+2. All angular arguments must be computed in degrees then converted to radians
+   for trigonometric functions
+
+3. The E eccentricity factor must be applied:
+   E = 1 - 0.002516 * T - 0.0000074 * T^2
+   Terms involving M use E as a multiplier
+   Terms involving 2M use E^2 as a multiplier
+
+4. The full 60-term longitude and latitude tables from Chapter 47 must be used,
+   not a truncated subset
+
+5. The full 25-term event correction tables from Chapter 49 must be used,
+   including the W correction for quarter phases
+
+6. The A1 through A14 planetary corrections from Table 49.B must be applied
+   after the main correction sum
+
+## Test Fixtures
+
+Reuse the same five fixtures from P0025. The MoonPhaseFixtures class already seeds
+these records. P0026 adds new Attempt records using `meeus-full-corrections-v1`
+against the same MoonPhaseProblem records.
+
+**Do not create new fixture records.** Create new Attempt records only.
+
+The runner should be named `MoonPhaseFullAttemptRunner` and should record attempts
+under prompt `P0026` with algorithm version `meeus-full-corrections-v1`.
+
+
+## Reference Implementation
+
+Same as P0025. Use the existing astronoby reference solver and existing
+GemMoonPhaseSolver. Do not create a new reference solver.
+
+The comparison is: `meeus-full-corrections-v1` candidate vs astronoby reference,
+on the same five fixtures already in the database.
+
+## Validation Requirements
+
+For illuminated fraction and phase fraction fixtures:
+
+1. **Range validity:** illuminated_fraction between 0.0 and 1.0 inclusive
+2. **Range validity:** phase_fraction between 0.0 and 1.0 inclusive
+3. **Tolerance:** candidate illuminated_fraction matches astronoby within 0.005
+4. **Tolerance:** candidate phase_fraction matches astronoby within 0.005
+5. **Phase name consistency:** phase_name matches expected quadrant given phase_fraction
+
+For phase event fixtures:
+
+1. **Event count:** correct number of major phase events for the month
+2. **Event types present:** new_moon, first_quarter, full_moon, last_quarter all represented
+3. **Time tolerance:** candidate event times match astronoby within 2 minutes
+4. **Ordering:** events appear in chronological order
+
+## Comparison Metrics
+
+Same metrics as P0025, with tighter tolerances:
+- illuminated_fraction difference (target under 0.005)
+- phase_fraction difference (target under 0.005)
+- phase event time offset in minutes (target under 2 minutes)
+
+**Direct comparison with meeus-v1:**
+R0026 should explicitly state the improvement over R0025:
+- fraction difference improvement
+- event time offset improvement (target: from ~70 seconds to under 2 minutes)
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures pass validation** - fractions within 0.005, events within 2 minutes
+2. ✅ **Full Chapter 47 longitude/latitude tables implemented** - all 60 terms used
+3. ✅ **Full Chapter 49 correction tables implemented** - all 25 terms plus planetary corrections
+4. ✅ **E eccentricity factor applied correctly** - M and 2M terms scaled by E and E^2
+5. ✅ **Tests pass** - All unit tests green
+6. ✅ **meeus-v1 classes unchanged** - both versions coexist in codebase
+7. ✅ **Performance acceptable** - All calculations complete in under 5 seconds
+
+## Implementation Notes
+
+**Critical distinction from meeus-v1:**
+The simplified meeus-v1 derives phase fraction purely from synodic arithmetic.
+meeus-full-corrections-v1 derives JDE of each event from the full Chapter 49
+series, then converts to UTC. These are different computational paths that
+should produce significantly different accuracy levels.
+
+**Seed file pattern:**
+Add `MoonPhaseFullAttemptRunner.new.run_all` to db/seeds.rb alongside the
+existing `MoonPhaseAttemptRunner.new.run_all` call. The UI will then show
+both `meeus-v1` and `meeus-full-corrections-v1` attempts for the same fixtures,
+enabling direct side-by-side comparison.
+
+**UI considerations:**
+The existing moon_phase attempts UI should display both algorithm versions
+for the same fixture, making the accuracy difference directly visible.
+No new UI routes or views are required.
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved candidate algorithm:** meeus-full-corrections-v1
+  (Jean Meeus "Astronomical Algorithms" full Chapter 47 + Chapter 49 correction series)
+**Approved reference:** existing astronoby GemMoonPhaseSolver (unchanged from P0025)
+**Fixture reuse:** existing MoonPhaseProblem records (no new fixture seeding)
+**New runner:** MoonPhaseFullAttemptRunner under prompt P0026
+**PI approval:** 2026-04-22

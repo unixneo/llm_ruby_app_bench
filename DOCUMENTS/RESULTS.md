@@ -2491,3 +2491,167 @@ Finished in 67.039716s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+
+## R0026 - P0026 Moon Phase Full-Corrections Follow-Up
+
+P0026 added a second versioned Moon Phase candidate, `meeus-full-corrections-v1`, alongside the existing `meeus-v1` lane. The implementation preserved the original P0025 classes and introduced:
+
+- `MoonPhaseFullCalculator`
+- `MoonPhaseFullEventFinder`
+- `MoonPhaseFullSolutionValidator`
+- `MoonPhaseFullResultComparison`
+- `MoonPhaseFullAttemptRunner`
+
+`db/seeds.rb` now runs both moon-phase attempt runners so the same five fixtures record parallel `P0025` and `P0026` results in the shared attempts UI.
+
+### Important Prompt Correction
+
+P0026 was not implemented literally as written on one key causal claim.
+
+The prompt stated that the roughly 70-second event-time offset seen in `R0025` came from missing full Meeus Chapter 47 and Chapter 49 correction series. Codex verified during implementation that this was not accurate for the existing repository state:
+
+- `app/services/moon_phase_event_finder.rb` from `P0025` already contained the Chapter 49 periodic correction tables
+- it also already included the additional `A1-A14` terms and quarter-phase handling
+- the actual missing piece was **TT-to-UTC conversion** after computing the Julian Ephemeris Day
+
+So the measurable event improvement in `P0026` came from correcting the actual timing path rather than from inventing a new explanation unsupported by the codebase. This prompt issue is documented separately in `CLE0017`.
+
+### Implemented Candidate Behavior
+
+The implemented `P0026` lane uses:
+
+- the existing accurate native daily phase calculator path for daily fraction fixtures
+- a new event finder that converts JDE terrestrial time into UTC using the verified local `delta_t` pattern observed in `astronoby 0.9.0`
+
+This preserved the prompt’s benchmark goal of a second, more accurate versioned candidate while keeping the implementation grounded in the repository’s actual error source.
+
+Algorithm version:
+
+```text
+meeus-full-corrections-v1
+```
+
+Reference version:
+
+```text
+astronoby-v0.9.0
+```
+
+### Verified Results
+
+After running the new runner, five new `P0026` Moon Phase attempts were recorded:
+
+```text
+fixture | status | key difference
+moon_phase_events_2024_05 | feasible | max event offset 0.0 minutes
+moon_phase_events_2025_03 | feasible | max event offset 0.0 minutes
+moon_phase_first_quarter_2024_05 | feasible | max fraction difference 0.0006980000000000874
+moon_phase_full_moon_2024_01 | feasible | max fraction difference 0.0017340000000000133
+moon_phase_new_moon_2024_01 | feasible | max fraction difference 0.001911
+```
+
+Observed candidate/reference behavior:
+
+- daily fixtures remained comfortably inside the tighter `0.005` tolerance
+- monthly event offsets dropped from about `1.17` minutes in `R0025` to `0.0`
+- all five fixtures passed validation
+
+### Comparison Against R0025
+
+The measurable improvement over `R0025` is on the monthly event side:
+
+```text
+R0025 event offset: 1.166666666667 minutes
+R0026 event offset: 0.0 minutes
+```
+
+The daily Moon-fraction fixtures were already inside the tighter P0026 tolerance, so the main research value of `P0026` is that the second versioned candidate makes the corrected event-timing path directly visible in the attempts ledger and UI.
+
+### UI Verification
+
+Direct localhost verification was performed after seeding the new attempts:
+
+- root page now shows the Moon Phase challenge card with `2 algorithms` and `10 attempts`
+- `/moon_phase/attempts` shows both `meeus-v1` and `meeus-full-corrections-v1`
+- the shared Moon Phase attempts page still uses the type-aware labels:
+  - `Max Fraction Difference` for daily fixtures
+  - `Max Event Offset (minutes)` for event fixtures
+
+Verified scoped UI behavior:
+
+```text
+/
+/moon_phase/attempts
+```
+
+No new user-visible Moon Phase UI bugs were found during this verification pass.
+
+### Verification
+
+Focused P0026 slice:
+
+```bash
+bin/rails test test/services/moon_phase_full_calculator_test.rb test/services/moon_phase_full_event_finder_test.rb test/services/moon_phase_full_solution_validator_test.rb test/services/moon_phase_full_result_comparison_test.rb test/services/moon_phase_full_attempt_runner_test.rb test/controllers/moon_phase_attempts_controller_test.rb
+```
+
+Output:
+
+```text
+11 runs, 43 assertions, 0 failures, 0 errors, 0 skips
+Finished in 0.780755s
+```
+
+Broader Moon Phase / challenge slice:
+
+```bash
+bin/rails test test/models/moon_phase_problem_test.rb test/services/moon_phase_calculator_test.rb test/services/moon_phase_event_finder_test.rb test/services/gem_moon_phase_solver_test.rb test/services/moon_phase_solution_validator_test.rb test/services/moon_phase_result_comparison_test.rb test/services/moon_phase_attempt_runner_test.rb test/services/moon_phase_full_calculator_test.rb test/services/moon_phase_full_event_finder_test.rb test/services/moon_phase_full_solution_validator_test.rb test/services/moon_phase_full_result_comparison_test.rb test/services/moon_phase_full_attempt_runner_test.rb test/controllers/moon_phase_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+39 runs, 158 assertions, 0 failures, 0 errors, 0 skips
+Finished in 1.758305s
+```
+
+Focused runner verification:
+
+```bash
+bin/rails runner 'MoonPhaseFullAttemptRunner.new.run_all'
+bin/rails runner 'puts Attempt.joins(:challenge).where(challenges: { name: "Moon Phase Calculations" }).group(:algorithm_version).count.inspect'
+```
+
+Output:
+
+```text
+{"meeus-full-corrections-v1"=>5, "meeus-v1"=>5}
+```
+
+Full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+135 runs, 1140 assertions, 0 failures, 0 errors, 0 skips
+Finished in 59.665197s
+```
+
+Single-worker skip-flag suite:
+
+```bash
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+135 runs, 906 assertions, 0 failures, 0 errors, 13 skips
+Finished in 63.155663s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.

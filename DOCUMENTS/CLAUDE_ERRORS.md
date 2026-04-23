@@ -1167,3 +1167,92 @@ Before writing any reference API snippet in a prompt, Architect must verify agai
 
 **Status:** Caught by Codex before implementation; PI resolved via Option A  
 **Affected prompt:** P0025
+
+
+---
+
+# CLE0017: P0026 misdiagnosed the source of P0025 moon-phase event drift
+
+**Date:** 2026-04-23
+**Prompt:** P0026 (Moon Phase Calculations - Full Meeus Correction Series)
+**Error Type:** Specification Error - Incorrect causal diagnosis of existing implementation behavior
+**Detected By:** Codex during implementation
+**Phase:** Prompt specification
+
+## Error Description
+
+Architect (Claude) wrote P0026 around the claim that the roughly 70-second event-time offset observed in `P0025` was caused by the simplified candidate omitting the full Meeus Chapter 47 and Chapter 49 correction series.
+
+That diagnosis was not correct for the codebase state that actually existed.
+
+Codex verified that the existing `MoonPhaseEventFinder` from `P0025` already included:
+
+- the 25-term Chapter 49 correction tables for new/full moon events
+- the quarter-phase correction table and `W` adjustment
+- the `A1` through `A14` additional corrections
+- the `E` eccentricity factor handling
+
+The measurable event drift was instead caused by a missing **TT-to-UTC conversion** step: the P0025 code computed a Julian Ephemeris Day and then treated it as UTC directly, while `astronoby` converts terrestrial time using `delta_t` before returning a rounded UTC `Time`.
+
+So the prompt prescribed the wrong causal mechanism for the observed benchmark gap.
+
+## Verified Repository State
+
+Codex verified the actual local implementation before coding:
+
+- `app/services/moon_phase_event_finder.rb` already contained the Chapter 49 periodic term tables and additional corrections
+- local `astronoby 0.9.0` converts phase-event JDE TT through `Instant.from_terrestrial_time(...).to_time.round`
+- local `astronoby` `delta_t` values for the relevant 2024-2025 dates are about 69 seconds, matching the observed offset scale
+
+This means the prompt’s framing of `meeus-v1` as if it only used a bare JDE approximation or simple phase-fraction search for events was inaccurate relative to the repository.
+
+## Root Cause
+
+This error came from prompt-writing without re-reading the actual `P0025` implementation before explaining what it did wrong.
+
+Architect inferred a plausible scientific explanation from the observed benchmark gap, but did not verify that explanation against:
+
+1. the real repository code already written for P0025
+2. the reference gem’s actual TT/UTC conversion path
+
+This is a stronger version of the same reliability problem seen in earlier architect errors:
+
+- plausible reasoning presented as verified repository fact
+- inadequate code-grounded verification before prompt finalization
+
+## Impact
+
+- ❌ P0026’s scientific rationale for the improvement path was incorrect
+- ❌ The prompt overstated what `meeus-v1` was missing on the event side
+- ✅ Codex caught the mismatch before implementing a fictitious explanation
+- ✅ The implemented `P0026` lane corrected the actual event-timing issue by adding TT-to-UTC conversion
+- ✅ The benchmark now records the real measurable change: event offsets dropped from about `1.17` minutes to `0.0`
+
+## Why This Matters
+
+This matters because it is not just an API mistake or a fixture typo. It is a **causal misdiagnosis** inside the research narrative.
+
+If uncaught, the results ledger would have incorrectly attributed the improvement to one class of astronomical corrections while the actual change came from a different source. That would weaken the integrity of the benchmark record and the paper trail.
+
+## Correction
+
+Codex implemented `P0026` as a distinct versioned lane that:
+
+1. preserved `meeus-v1` unchanged
+2. added the missing TT-to-UTC conversion on the event path
+3. kept the existing daily native phase calculator path, which was already inside the tighter `0.005` daily tolerance on the benchmark fixtures
+
+The documentation for `R0026` records the actual improvement path rather than the prompt’s mistaken causal explanation.
+
+## Prevention
+
+Before Architect writes a “next version improves previous version because X was missing” prompt:
+
+1. re-read the existing implementation directly
+2. verify the claimed missing mechanism is actually absent
+3. inspect the reference implementation when using observed error magnitude as causal evidence
+
+Prompt rationale must be based on repository state, not only on a plausible post-hoc scientific story.
+
+**Status:** Caught by Codex during implementation; benchmark implemented against the verified cause of drift rather than the prompt’s mistaken causal explanation  
+**Affected prompt:** P0026

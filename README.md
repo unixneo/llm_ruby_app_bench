@@ -58,18 +58,21 @@ A human-in-the-loop experimental framework for evaluating large language model (
    - 5 fixtures: 3 jobs × 3 machines to 8 jobs × 5 machines
    - Reference: OR-Tools CP-SAT
 
-7. **Moon Phase Calculations** - P0025
-   - Meeus-style daily Moon phase calculator and monthly phase event finder
+7. **Moon Phase Calculations** - P0025-P0026
+   - Two native Ruby candidate versions: `meeus-v1` and `meeus-full-corrections-v1`
    - 5 fixtures: 3 daily phase checks and 2 monthly event calendars
    - Reference: astronoby 0.9.0
+   - `P0026` removed the prior event-time drift by adding verified TT-to-UTC conversion on the event path
 
 **Error Documentation:**
-- 16 Claude/Architect errors (CLE0001-CLE0016)
+- 17 Claude/Architect errors (CLE0001-CLE0017)
 - 10 Codex/Coder errors (CE0001-CE0010)
 - 8 active corrections (C001-C008)
 
 **Recent Major Findings:**
 
+- **P0026 complete:** Second Moon Phase algorithm version added; monthly event offsets dropped from ~`1.17` minutes to `0.0`
+- **CLE0017 documented:** P0026 prompt misdiagnosed the prior moon-phase drift; Codex verified the real cause was missing TT-to-UTC conversion, not absent Chapter 49 event terms
 - **P0025 complete:** Moon Phase implementation with native Ruby candidate and `astronoby 0.9.0` reference on all 5 fixtures
 - **astronoby behavior verified locally:** monthly phase events do not require ephemeris, daily illuminated/phase fractions do require `de421.bsp`
 - **P0024 complete:** Job Shop Scheduling implementation with exact native Ruby candidate matching OR-Tools on all 5 fixtures
@@ -118,7 +121,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SURVEY.md` for complete analysis.
 
-**Progress:** 25 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop + 1 Moon Phase) = 50% of 50-prompt target
+**Progress:** 26 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop + 2 Moon Phase) = 52% of 50-prompt target
 
 ## Three-Role Architecture
 
@@ -145,9 +148,9 @@ See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SUR
 llm_ruby_app_bench/
 ├── DOCUMENTS/
 │   ├── PLAN.md             # Frozen research charter
-│   ├── PROMPTS.md          # Numbered prompts (P0001-P0025)
-│   ├── RESULTS.md          # Implementation results (R0001-R0025)
-│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0016)
+│   ├── PROMPTS.md          # Numbered prompts (P0001-P0026)
+│   ├── RESULTS.md          # Implementation results (R0001-R0026)
+│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0017)
 │   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
 │   ├── CORRECTIONS.md      # Active corrections (C001-C008)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
@@ -160,7 +163,7 @@ llm_ruby_app_bench/
 ├── db/
 │   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, and Moon Phase fixtures
 │   └── schema.rb           # SQLite3 schema
-└── test/                   # 126 tests, 1109 assertions
+└── test/                   # 135 tests, 1140 assertions
 ```
 
 ## Setup
@@ -325,6 +328,7 @@ Note: The single-worker command is the verified sandbox-safe skip-flag run for t
 
 **Moon Phase:**
 - `meeus-v1` - Native Ruby Meeus-style phase calculator and event finder
+- `meeus-full-corrections-v1` - Native Ruby follow-on version with corrected TT-to-UTC event timing
 - Reference: `astronoby-v0.9.0`
 
 ## Key Findings
@@ -424,7 +428,7 @@ Any change touching views, routes, controllers, CSS, or user-visible layout requ
 - **SQLite3**
 - **OR-Tools 0.17.1** - Reference solver (Google)
 - **Astronoby 0.9.0** - Astronomy reference solver
-- **Minitest** - 126 tests, 1109 assertions
+- **Minitest** - 135 tests, 1140 assertions
 
 ## Future Work
 
@@ -474,7 +478,7 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 ---
 
-**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (1 prompt), 16 Claude errors, 10 Codex errors, 8 corrections active
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (2 prompts), 17 Claude errors, 10 Codex errors, 8 corrections active
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 
