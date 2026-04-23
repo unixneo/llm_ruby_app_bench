@@ -117,6 +117,37 @@
   <article class="algorithm-card">
     <div class="card-header">
       <div>
+        <h2 class="card-title">Job Shop Scheduling Problem</h2>
+        <p class="muted-line">Exact branch-and-bound candidate schedules compared with OR-Tools CP-SAT references.</p>
+      </div>
+      <span class="badge badge-pass">Active</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">Fixtures</div>
+        <div class="metric-value"><%= pluralize(@job_shop_stats.fetch(:fixture_count), "fixture") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Algorithms</div>
+        <div class="metric-value"><%= pluralize(@job_shop_stats.fetch(:algorithm_count), "algorithm") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value"><%= pluralize(@job_shop_stats.fetch(:attempt_count), "attempt") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Status</div>
+        <div class="metric-value">Active</div>
+      </div>
+    </div>
+
+    <%= link_to "View Attempts", @job_shop_challenge ? challenge_path(@job_shop_challenge) : job_shop_attempts_path, class: "btn btn-primary" %>
+  </article>
+
+  <article class="algorithm-card">
+    <div class="card-header">
+      <div>
         <h2 class="card-title">Max Flow Problem</h2>
         <p class="muted-line">Exact Edmonds-Karp candidate flows compared with OR-Tools SimpleMaxFlow references.</p>
       </div>

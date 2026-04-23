@@ -20,6 +20,16 @@ module ApplicationHelper
         complexity: "Polynomial-time linear assignment problem; Hungarian algorithm runs in O(n^3).",
         relevance: "Models worker-task matching, resource allocation, scheduling, and minimum-cost pairing decisions."
       }
+    when "Job Shop Scheduling Problem"
+      {
+        complexity: "NP-hard scheduling problem with precedence and resource constraints.",
+        relevance: "Models production planning, manufacturing sequencing, resource contention, and time-constrained operations."
+      }
+    when "Minimum Cost Flow Problem"
+      {
+        complexity: "Polynomial-time network optimization problem with capacities, costs, and fixed demand.",
+        relevance: "Models cost-aware routing, logistics planning, and flow allocation under capacity constraints."
+      }
     when "Max Flow Problem"
       {
         complexity: "Polynomial-time network flow problem; Edmonds-Karp runs in O(VE^2).",

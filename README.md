@@ -52,13 +52,21 @@ A human-in-the-loop experimental framework for evaluating large language model (
    - 5 fixtures: 4 to 8 nodes with cost optimization
    - Reference: OR-Tools SimpleMinCostFlow
 
+6. **Job Shop Scheduling Problem** - P0024
+   - Branch-and-bound scheduler (exact)
+   - Scheduling with precedence constraints and machine no-overlap constraints
+   - 5 fixtures: 3 jobs × 3 machines to 8 jobs × 5 machines
+   - Reference: OR-Tools CP-SAT
+
 **Error Documentation:**
-- 14 Claude/Architect errors (CLE0001-CLE0014)
+- 15 Claude/Architect errors (CLE0001-CLE0015)
 - 10 Codex/Coder errors (CE0001-CE0010)
 - 8 active corrections (C001-C008)
 
 **Recent Major Findings:**
 
+- **P0024 complete:** Job Shop Scheduling implementation with exact native Ruby candidate matching OR-Tools on all 5 fixtures
+- **CLE0015 documented:** P0024 mixed exact/heuristic scope and included an incorrect OR-Tools Ruby CP-SAT snippet
 - **P0023 complete:** Min Cost Flow implementation (Successive Shortest Path algorithm)
 - **CLE0013 documented:** Infeasible fixture specification (demand exceeded source capacity), caught by Codex during verification
 - **P0021 success:** Hungarian algorithm achieved optimal cost on all 5 fixtures with zero implementation errors
@@ -80,7 +88,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
   - Routing: TSP ✅, VRP ✅, CVRP, VRPTW
   - Assignment: Linear sum ✅, quadratic assignment
   - Flow: Max flow ✅, min cost flow ✅
-  - Scheduling: Job shop scheduling
+  - Scheduling: Job shop scheduling ✅
   
 - **30% Celestial Mechanics** (`orbit` gem)
   - Satellite propagation from TLEs
@@ -102,7 +110,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SURVEY.md` for complete analysis.
 
-**Progress:** 23 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow) = 46% of 50-prompt target
+**Progress:** 24 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop) = 48% of 50-prompt target
 
 ## Three-Role Architecture
 
@@ -129,22 +137,22 @@ See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SUR
 llm_ruby_app_bench/
 ├── DOCUMENTS/
 │   ├── PLAN.md             # Frozen research charter
-│   ├── PROMPTS.md          # Numbered prompts (P0001-P0023)
-│   ├── RESULTS.md          # Implementation results (R0001-R0023)
-│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0014)
+│   ├── PROMPTS.md          # Numbered prompts (P0001-P0024)
+│   ├── RESULTS.md          # Implementation results (R0001-R0024)
+│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0015)
 │   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
 │   ├── CORRECTIONS.md      # Active corrections (C001-C008)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
 │   └── ABSTRACT.md         # Research abstract
 ├── app/
-│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem
+│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem, MinCostFlowProblem, JobShopProblem
 │   ├── services/           # Algorithm solvers and runners
 │   ├── controllers/        # Challenges, Attempts controllers
 │   └── views/              # Algorithm index and result comparison UI
 ├── db/
-│   ├── seeds.rb            # TSP, VRP, Assignment, and Max Flow fixtures
+│   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, and Job Shop fixtures
 │   └── schema.rb           # SQLite3 schema
-└── test/                   # 80 tests, 781 assertions
+└── test/                   # 109 tests, 1063 assertions
 ```
 
 ## Setup
@@ -186,10 +194,12 @@ bin/rails server
 ### Viewing Results
 
 The web interface displays:
-- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, and Max Flow
+- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, Max Flow, Min Cost Flow, and Job Shop
 - **TSP attempts (`/tsp/attempts`):** All TSP solutions with version comparison
 - **VRP attempts (`/vrp/attempts`):** All VRP solutions with capacity and distance comparison
 - **Assignment attempts (`/assignment/attempts`):** All Assignment solutions with optimal-cost comparison
+- **Job Shop attempts (`/job_shop/attempts`):** All Job Shop schedules with makespan comparison
+- **Min Cost Flow attempts (`/min_cost_flow/attempts`):** All Min Cost Flow solutions with demand and cost comparison
 - **Max Flow attempts (`/max_flow/attempts`):** All Max Flow solutions with capacity and conservation validation
 - **Attempt detail:** Side-by-side candidate vs reference comparison
 - **PI interpretation:** Result classification form
@@ -259,6 +269,13 @@ Note: Use full suite for CI, release checks, and final prompt verification.
 - `mincostflow_capacity_limited_7`
 - `mincostflow_parallel_edges_8`
 
+**Job Shop Fixtures (5):**
+- `jobshop_tiny_3x3`
+- `jobshop_small_4x4`
+- `jobshop_asymmetric_5x4`
+- `jobshop_precedence_test_6x3`
+- `jobshop_medium_8x5`
+
 ### Algorithm Versions
 
 **TSP:**
@@ -282,6 +299,10 @@ Note: Use full suite for CI, release checks, and final prompt verification.
 **Min Cost Flow:**
 - `successive-shortest-path-v1` - Exact polynomial solver
 - Reference: `or-tools-simple-min-cost-flow-v1`
+
+**Job Shop Scheduling:**
+- `branch-and-bound-v1` - Exact native Ruby scheduler
+- Reference: `or-tools-cp-sat-job-shop-v1`
 
 ## Key Findings
 
@@ -379,12 +400,12 @@ Any change touching views, routes, controllers, CSS, or user-visible layout requ
 - **Rails 7.2**
 - **SQLite3**
 - **OR-Tools 0.17.1** - Reference solver (Google)
-- **Minitest** - 80 tests, 781 assertions
+- **Minitest** - 109 tests, 1063 assertions
 
 ## Future Work
 
 **Planned:**
-1. Additional OR-Tools algorithms (Min Cost Flow, Scheduling, CVRP/VRPTW variants)
+1. Additional OR-Tools algorithms (CVRP/VRPTW variants, quadratic assignment, richer scheduling)
 2. Quantitative error pattern analysis
 3. Correction effectiveness evaluation
 4. Multi-LLM comparison
@@ -429,10 +450,10 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 ---
 
-**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), 14 Claude errors, 10 Codex errors, 8 corrections active
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), 15 Claude errors, 10 Codex errors, 8 corrections active
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 
 **Release Version:** v0.1.2
 
-**Last Updated:** 2026-04-20
+**Last Updated:** 2026-04-23

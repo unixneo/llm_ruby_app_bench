@@ -993,3 +993,138 @@ Complex algorithmic reasoning about Min Cost Flow succeeded (P0023 prompt was we
 **Status:** Multiple verification failures during error documentation and README updates, corrected through Codex intervention  
 **Affected files:** CLAUDE_ERRORS.md, README.md (multiple correction cycles required)  
 **Research impact:** Demonstrates that architect reliability cannot be assumed even for simple metadata management tasks
+
+---
+
+# CLE0015: P0024 Prompt Mixed Exactness and Incorrect OR-Tools Ruby API Example
+
+**Date:** 2026-04-23  
+**Prompt:** P0024 (Job Shop Scheduling Problem)  
+**Error Type:** Prompt Specification Error - Research Ambiguity and Incorrect Reference Snippet  
+**Detected By:** Codex during implementation  
+**Phase:** Prompt execution before implementation completion
+
+## Error Description
+
+Architect (Claude) introduced two distinct prompt-level problems in `P0024`.
+
+### 1. Research-design ambiguity about candidate exactness
+
+The prompt specified:
+
+- exact OR-Tools CP-SAT reference
+- candidate implementation "may use simplified CP approach or constraint-aware heuristic"
+- success criterion of "optimal or near-optimal solutions"
+
+This changed the meaning of the benchmark from an exact-comparison lane to a potentially heuristic-versus-optimal comparison, but without clearly isolating that as a research-design choice requiring explicit PI confirmation.
+
+Codex stopped under `C001` and `C004` and requested clarification. The PI then explicitly selected:
+
+```text
+2. an exact candidate only
+```
+
+Without that stop-and-confirm step, Codex would have been forced to infer the benchmark question from a prompt that mixed exact and heuristic expectations.
+
+### 2. Incorrect OR-Tools Ruby API example for CP-SAT interval variables
+
+The prompt documented the reference example as:
+
+```ruby
+interval_var = model.new_interval_var(start_var, duration, end_var, "interval_#{job_id}_#{task_id}")
+```
+
+In the installed Ruby `or-tools` binding used in this repository, `new_interval_var` expects `IntVar` arguments, not a raw integer duration. Using the prompt snippet directly caused a Ruby segmentation fault in this environment when Codex tested the API.
+
+The working form required:
+
+```ruby
+duration_var = model.new_constant(duration)
+interval_var = model.new_interval_var(start_var, duration_var, end_var, "interval_#{job_id}_#{task_id}")
+```
+
+This means the prompt’s reference implementation example was not executable as written for the actual gem/binding version in the project.
+
+## Verification
+
+Codex verified the binding implementation in the installed gem source:
+
+```text
+new_interval_var(start: IntVar, size: IntVar, end: IntVar, name: String)
+```
+
+Codex also verified that:
+
+- using a raw integer duration triggered a crash in this environment
+- using `model.new_constant(duration)` produced a working CP-SAT reference solver
+
+## Root Cause
+
+This error came from insufficient prompt-side verification at two levels:
+
+1. **Research-level verification failure**
+   The prompt mixed exact and heuristic candidate expectations without isolating that as a decision point requiring explicit PI confirmation.
+
+2. **Reference-snippet verification failure**
+   The OR-Tools example appears to have been written from a generic or non-Ruby-specific API pattern without verifying it against the actual Ruby gem binding used in this repository.
+
+Architect documented a plausible CP-SAT sketch, but did not functionally verify that the example matched the installed Ruby interface.
+
+## Impact
+
+- ❌ Prompt did not cleanly preserve the research question until PI clarified exact-candidate scope
+- ❌ Reference example was wrong for the repository’s actual Ruby OR-Tools binding
+- ✅ Codex caught both issues before shipping an implementation based on the wrong benchmark interpretation
+- ✅ PI explicitly resolved the exact-versus-heuristic ambiguity before coding proceeded
+- ✅ Codex corrected the binding usage in the implemented reference solver
+
+## Why This Matters
+
+This error is important because it combines two architect failure modes:
+
+- **prompt ambiguity at the research-decision layer**
+- **plausible but incorrect reference code at the implementation-guidance layer**
+
+Either one could have degraded the benchmark:
+
+- the first by silently changing what was being compared
+- the second by making the documented reference path non-functional
+
+Together they show that architect prompts can be internally coherent while still being unreliable at execution time unless both the research question and the reference API are independently verified.
+
+## Pattern Recognition
+
+This error is related to prior architect failures but is not identical to them.
+
+**Related to CLE0005:**
+Like CLE0005, this prompt blended in a consequential algorithm/benchmark choice without sufficiently isolating it for PI confirmation.
+
+**Related to CLE0010 and CLE0013:**
+Like those errors, this prompt relied on an inadequately verified technical premise. In `CLE0010`, the gem functionality was misidentified; in `CLE0013`, fixture feasibility was not checked; here, the Ruby binding example itself was not validated.
+
+**Distinctive feature:**
+`CLE0015` combines benchmark-design ambiguity with incorrect executable guidance in the same prompt.
+
+## Correction
+
+The implementation was corrected through:
+
+1. PI confirmation that `P0024` must use an **exact candidate only**
+2. Codex replacement of the prompt’s raw-duration interval example with the Ruby-binding-safe `new_constant(duration)` form
+
+## Prevention
+
+For future architect prompts involving OR-Tools reference snippets:
+
+1. Verify the snippet against the actual Ruby binding, not a generic API sketch
+2. Treat any exact-versus-heuristic candidate difference as a research checkpoint requiring explicit PI confirmation
+3. Do not mark a prompt "Ready for Codex implementation" until both the benchmark question and the reference API path have been tested
+
+## Lessons Learned
+
+Plausible reference code is not enough. In this project, prompt examples function as implementation guidance and must therefore be checked against the actual gem/binding used by the repository.
+
+Similarly, "candidate may use heuristic" is not a harmless flexibility clause when the reference is exact. It changes the interpretation of the comparison and must be surfaced explicitly as a research decision.
+
+**Status:** Error caught during implementation; exact candidate scope confirmed by PI; Ruby API usage corrected in implementation  
+**Affected prompt:** P0024

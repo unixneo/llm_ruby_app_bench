@@ -5,12 +5,14 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     @challenge = Challenge.create!(name: "Traveling Salesman Problem")
     @vrp_challenge = Challenge.create!(name: "Vehicle Routing Problem")
     @assignment_challenge = Challenge.create!(name: "Assignment Problem")
+    @job_shop_challenge = Challenge.create!(name: "Job Shop Scheduling Problem")
     @min_cost_flow_challenge = Challenge.create!(name: "Minimum Cost Flow Problem")
     @max_flow_challenge = Challenge.create!(name: "Max Flow Problem")
     create_attempt(@challenge, "fixture-brute-force-v1", "brute-force-v1")
     create_attempt(@challenge, "fixture-held-karp-v1", "held-karp-v1")
     create_attempt(@vrp_challenge, "vrp_small_5", "clarke-wright-savings-v1")
     create_attempt(@assignment_challenge, "assignment_tiny_3x3", "hungarian-v1")
+    create_attempt(@job_shop_challenge, "jobshop_tiny_3x3", "branch-and-bound-v1")
     create_attempt(@min_cost_flow_challenge, "mincostflow_simple_4", "successive-shortest-path-v1")
     create_attempt(@max_flow_challenge, "maxflow_simple_4", "edmonds-karp-v1")
   end
@@ -39,6 +41,8 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Exact Hungarian candidate results"
     refute_includes response.body, "Polynomial-time linear assignment problem"
     refute_includes response.body, "worker-task matching, resource allocation, scheduling"
+    assert_includes response.body, "Job Shop Scheduling Problem"
+    assert_includes response.body, "Exact branch-and-bound candidate schedules"
     assert_includes response.body, "Minimum Cost Flow Problem"
     assert_includes response.body, "Successive-shortest-path candidate results"
     assert_includes response.body, "Max Flow Problem"
@@ -71,6 +75,12 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to assignment_attempts_url
   end
 
+  test "challenge show redirects job shop challenge to job shop attempts index" do
+    get challenge_url(@job_shop_challenge)
+
+    assert_redirected_to job_shop_attempts_url
+  end
+
   test "challenge show redirects max flow challenge to max flow attempts index" do
     get challenge_url(@max_flow_challenge)
 
@@ -93,6 +103,10 @@ class ChallengesControllerTest < ActionDispatch::IntegrationTest
 
   test "assignment attempts index is scoped under assignment path" do
     assert_equal "/assignment/attempts", assignment_attempts_path
+  end
+
+  test "job shop attempts index is scoped under job shop path" do
+    assert_equal "/job_shop/attempts", job_shop_attempts_path
   end
 
   test "max flow attempts index is scoped under max flow path" do

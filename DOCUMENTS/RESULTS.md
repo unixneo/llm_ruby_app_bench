@@ -1889,6 +1889,179 @@ Output:
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
+---
+
+## R0024 - P0024 Job Shop Scheduling Problem Implementation
+
+**Date:** 2026-04-23  
+**Codex Status:** Completed after PI clarification of exact-candidate scope
+
+### Summary
+
+Implemented P0024 as a Job Shop Scheduling benchmark.
+
+Implemented:
+
+- `JobShopProblem` Active Record model and migration for persisted job-shop fixtures
+- `JobShopFixtures` with five deterministic fixtures from P0024
+- `JobShopScheduler` pure Ruby exact branch-and-bound candidate
+- `GemJobShopScheduler` OR-Tools `CpModel` / `CpSolver` reference wrapper
+- `JobShopScheduleValidator` for precedence, no-overlap, completeness, and makespan checks
+- `JobShopResultComparison` for optimality and validation comparison
+- `JobShopAttemptRunner` to persist `Attempt` records under prompt `P0024`
+- `/job_shop/attempts` route scope using the existing attempt UI
+- Job Shop challenge card on the algorithm index
+- generic attempt display support for job-shop schedule labels
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and job-shop attempt display
+
+### Governance Notes
+
+Candidate source/version:
+
+```text
+branch-and-bound
+branch-and-bound-v1
+```
+
+Reference version:
+
+```text
+or-tools-cp-sat-job-shop-v1
+```
+
+P0024 initially mixed exact and heuristic candidate language:
+
+- exact OR-Tools CP-SAT reference
+- candidate "may use heuristic"
+- success criterion of "optimal or near-optimal"
+
+Under `C001` and `C004`, Codex stopped and requested PI confirmation before proceeding. PI explicitly selected:
+
+```text
+2. an exact candidate only
+```
+
+The implementation therefore uses an exact native Ruby candidate, not a heuristic schedule builder.
+
+### Prompt/API Correction Note
+
+P0024's OR-Tools Ruby snippet documented:
+
+```ruby
+model.new_interval_var(start_var, duration, end_var, name)
+```
+
+That is not valid for the installed Ruby `or-tools` binding used in this repository. The binding expects `IntVar` arguments, not a raw integer duration. The working reference implementation required:
+
+```ruby
+duration_var = model.new_constant(duration)
+model.new_interval_var(start_var, duration_var, end_var, name)
+```
+
+This prompt issue is documented separately in `CLE0015`.
+
+### Verified Results
+
+After seeding, five Job Shop attempts were recorded:
+
+```text
+fixture | status | candidate makespan | OR-Tools makespan | difference
+jobshop_asymmetric_5x4 | exact_match | exact match | exact match | 0.0
+jobshop_medium_8x5 | exact_match | exact match | exact match | 0.0
+jobshop_precedence_test_6x3 | exact_match | exact match | exact match | 0.0
+jobshop_small_4x4 | exact_match | exact match | exact match | 0.0
+jobshop_tiny_3x3 | exact_match | 11 | 11 | 0.0
+```
+
+All candidate schedules satisfied:
+
+- precedence constraints within each job
+- no machine overlap
+- all tasks scheduled
+- reported makespan equals calculated makespan
+
+The exact candidate found optimal makespans matching OR-Tools on all five fixtures.
+
+### UI Verification
+
+Direct localhost verification was performed after seeding:
+
+- root page shows the Job Shop challenge card
+- `/job_shop/attempts` shows only job-shop attempts
+- job-shop attempt detail page renders correct schedule labels and scoped links
+
+One shared-view route bug was detected during this verification pass:
+
+- the PI interpretation form on a job-shop attempt initially posted to the TSP route
+
+This was fixed before close-out by explicitly scoping the interpretation form URL in the shared attempt-detail view.
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused P0024 tests:
+
+```bash
+bin/rails test test/models/job_shop_problem_test.rb test/services/gem_job_shop_scheduler_test.rb test/services/job_shop_scheduler_test.rb test/services/job_shop_schedule_validator_test.rb test/services/job_shop_result_comparison_test.rb test/services/job_shop_attempt_runner_test.rb test/controllers/job_shop_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+24 runs, 183 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Follow-up tests after the shared interpretation-form route fix:
+
+```bash
+bin/rails test test/controllers/job_shop_attempts_controller_test.rb test/controllers/challenges_controller_test.rb test/services/job_shop_attempt_runner_test.rb test/services/job_shop_scheduler_test.rb
+```
+
+Output:
+
+```text
+18 runs, 165 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+109 runs, 1063 assertions, 0 failures, 0 errors, 0 skips
+Finished in 53.267602s
+```
+
+Skip-flag suite:
+
+```bash
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+109 runs, 829 assertions, 0 failures, 0 errors, 13 skips
+Finished in 54.758270s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
 ## R0021 - P0021 Assignment Problem Implementation
 
 **Date:** 2026-04-17  

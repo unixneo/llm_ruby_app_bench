@@ -18,6 +18,12 @@ class ChallengesController < ApplicationController
       algorithm_count: @assignment_challenge ? Attempt.where(challenge: @assignment_challenge).distinct.count(:algorithm_version) : 0,
       attempt_count: @assignment_challenge ? Attempt.where(challenge: @assignment_challenge).count : 0
     }
+    @job_shop_challenge = Challenge.find_by(name: "Job Shop Scheduling Problem")
+    @job_shop_stats = {
+      fixture_count: JobShopFixtures.all.count,
+      algorithm_count: @job_shop_challenge ? Attempt.where(challenge: @job_shop_challenge).distinct.count(:algorithm_version) : 0,
+      attempt_count: @job_shop_challenge ? Attempt.where(challenge: @job_shop_challenge).count : 0
+    }
     @max_flow_challenge = Challenge.find_by(name: "Max Flow Problem")
     @max_flow_stats = {
       fixture_count: MaxFlowFixtures.all.count,
@@ -45,6 +51,8 @@ class ChallengesController < ApplicationController
       redirect_to vrp_attempts_path
     elsif challenge.name == "Assignment Problem"
       redirect_to assignment_attempts_path
+    elsif challenge.name == "Job Shop Scheduling Problem"
+      redirect_to job_shop_attempts_path
     elsif challenge.name == "Minimum Cost Flow Problem"
       redirect_to min_cost_flow_attempts_path
     elsif challenge.name == "Max Flow Problem"

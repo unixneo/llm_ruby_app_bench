@@ -81,6 +81,8 @@ class Attempt < ApplicationRecord
       VrpFixtures.find(fixture_name)
     elsif challenge.name == "Assignment Problem"
       AssignmentProblem.find_by(name: fixture_name)
+    elsif challenge.name == "Job Shop Scheduling Problem"
+      JobShopProblem.find_by(name: fixture_name)
     elsif challenge.name == "Minimum Cost Flow Problem"
       MinCostFlowProblem.find_by(name: fixture_name)
     elsif challenge.name == "Max Flow Problem"
@@ -98,6 +100,8 @@ class Attempt < ApplicationRecord
       "Distance Difference"
     when "Assignment Problem", "Minimum Cost Flow Problem"
       "Cost Difference"
+    when "Job Shop Scheduling Problem"
+      "Makespan Difference"
     when "Max Flow Problem"
       "Flow Difference"
     else
@@ -111,6 +115,8 @@ class Attempt < ApplicationRecord
       "Candidate Routes"
     when "Assignment Problem"
       "Candidate Assignment"
+    when "Job Shop Scheduling Problem"
+      "Candidate Schedule"
     when "Minimum Cost Flow Problem"
       "Candidate Flow"
     when "Max Flow Problem"
@@ -126,6 +132,8 @@ class Attempt < ApplicationRecord
       "Reference Routes"
     when "Assignment Problem"
       "Reference Assignment"
+    when "Job Shop Scheduling Problem"
+      "Reference Schedule"
     when "Minimum Cost Flow Problem"
       "Reference Flow"
     when "Max Flow Problem"
@@ -145,6 +153,8 @@ class Attempt < ApplicationRecord
       :vrp
     when "Assignment Problem"
       :assignment
+    when "Job Shop Scheduling Problem"
+      :job_shop
     when "Minimum Cost Flow Problem"
       :min_cost_flow
     when "Max Flow Problem"
@@ -171,6 +181,12 @@ class Attempt < ApplicationRecord
     if result_data.key?("flow_edges")
       return result_data.fetch("flow_edges").map do |from, to, flow|
         "#{from} -> #{to}: #{flow}"
+      end.join(" | ")
+    end
+
+    if result_data.key?("scheduled_tasks")
+      return result_data.fetch("scheduled_tasks").map do |task|
+        "J#{task.fetch("job_id")}T#{task.fetch("task_id")} M#{task.fetch("machine_id")} @ #{task.fetch("start_time")}-#{task.fetch("end_time")}"
       end.join(" | ")
     end
 

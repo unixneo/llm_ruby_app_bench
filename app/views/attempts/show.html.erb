@@ -3,12 +3,27 @@
   vrp_attempts_path
 elsif @attempt.route_path_name == :assignment
   assignment_attempts_path
+elsif @attempt.route_path_name == :job_shop
+  job_shop_attempts_path
 elsif @attempt.route_path_name == :min_cost_flow
   min_cost_flow_attempts_path
 elsif @attempt.route_path_name == :max_flow
   max_flow_attempts_path
 else
   attempts_path
+end %>
+<% interpretation_form_url = if @attempt.route_path_name == :vrp
+  vrp_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :assignment
+  assignment_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :job_shop
+  job_shop_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :min_cost_flow
+  min_cost_flow_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :max_flow
+  max_flow_attempt_interpretations_path(@attempt)
+else
+  attempt_interpretations_path(@attempt)
 end %>
 
 <div class="page-header">
@@ -109,7 +124,7 @@ end %>
     <p><span class="badge badge-other"><%= @attempt.interpretation.classification.humanize %></span></p>
     <div class="notes-body"><%= simple_format(@attempt.interpretation.notes) %></div>
   <% else %>
-    <%= form_with(model: [@attempt, @interpretation], class: "interpretation-form") do |form| %>
+    <%= form_with(model: [@attempt, @interpretation], url: interpretation_form_url, class: "interpretation-form") do |form| %>
       <% if @interpretation.errors.any? %>
         <div class="flash flash-alert">
           <h3>Could not record interpretation</h3>
