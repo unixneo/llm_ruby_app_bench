@@ -37,6 +37,12 @@ Rails.application.routes.draw do
     end
   end
 
+  scope :moon_phase, as: :moon_phase, defaults: { challenge_name: "Moon Phase Calculations" } do
+    resources :attempts, controller: "attempts", only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
+  end
+
   scope :min_cost_flow, as: :min_cost_flow, defaults: { challenge_name: "Minimum Cost Flow Problem" } do
     resources :attempts, controller: "attempts", only: [:index, :show] do
       resources :interpretations, only: [:create]

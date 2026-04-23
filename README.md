@@ -58,14 +58,22 @@ A human-in-the-loop experimental framework for evaluating large language model (
    - 5 fixtures: 3 jobs × 3 machines to 8 jobs × 5 machines
    - Reference: OR-Tools CP-SAT
 
+7. **Moon Phase Calculations** - P0025
+   - Meeus-style daily Moon phase calculator and monthly phase event finder
+   - 5 fixtures: 3 daily phase checks and 2 monthly event calendars
+   - Reference: astronoby 0.9.0
+
 **Error Documentation:**
-- 15 Claude/Architect errors (CLE0001-CLE0015)
+- 16 Claude/Architect errors (CLE0001-CLE0016)
 - 10 Codex/Coder errors (CE0001-CE0010)
 - 8 active corrections (C001-C008)
 
 **Recent Major Findings:**
 
+- **P0025 complete:** Moon Phase implementation with native Ruby candidate and `astronoby 0.9.0` reference on all 5 fixtures
+- **astronoby behavior verified locally:** monthly phase events do not require ephemeris, daily illuminated/phase fractions do require `de421.bsp`
 - **P0024 complete:** Job Shop Scheduling implementation with exact native Ruby candidate matching OR-Tools on all 5 fixtures
+- **CLE0016 documented:** P0025 prompt specified wrong astronoby version and unverified ephemeris requirement; caught by Codex before implementation
 - **CLE0015 documented:** P0024 mixed exact/heuristic scope and included an incorrect OR-Tools Ruby CP-SAT snippet
 - **P0023 complete:** Min Cost Flow implementation (Successive Shortest Path algorithm)
 - **CLE0013 documented:** Infeasible fixture specification (demand exceeded source capacity), caught by Codex during verification
@@ -110,7 +118,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SURVEY.md` for complete analysis.
 
-**Progress:** 24 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop) = 48% of 50-prompt target
+**Progress:** 25 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop + 1 Moon Phase) = 50% of 50-prompt target
 
 ## Three-Role Architecture
 
@@ -137,22 +145,22 @@ See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SUR
 llm_ruby_app_bench/
 ├── DOCUMENTS/
 │   ├── PLAN.md             # Frozen research charter
-│   ├── PROMPTS.md          # Numbered prompts (P0001-P0024)
-│   ├── RESULTS.md          # Implementation results (R0001-R0024)
-│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0015)
+│   ├── PROMPTS.md          # Numbered prompts (P0001-P0025)
+│   ├── RESULTS.md          # Implementation results (R0001-R0025)
+│   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0016)
 │   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
 │   ├── CORRECTIONS.md      # Active corrections (C001-C008)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
 │   └── ABSTRACT.md         # Research abstract
 ├── app/
-│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem, MinCostFlowProblem, JobShopProblem
+│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem, MinCostFlowProblem, JobShopProblem, MoonPhaseProblem
 │   ├── services/           # Algorithm solvers and runners
 │   ├── controllers/        # Challenges, Attempts controllers
 │   └── views/              # Algorithm index and result comparison UI
 ├── db/
-│   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, and Job Shop fixtures
+│   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, and Moon Phase fixtures
 │   └── schema.rb           # SQLite3 schema
-└── test/                   # 109 tests, 1063 assertions
+└── test/                   # 126 tests, 1109 assertions
 ```
 
 ## Setup
@@ -173,15 +181,18 @@ cd llm_ruby_app_bench
 # Install dependencies (uses system gems, not vendor/bundle)
 bundle install
 
+# Download ephemeris used by daily Moon phase reference checks
+bundle exec ruby -e 'require "astronoby"; Astronoby::Ephem.download(name: "de421.bsp", target: "tmp/de421.bsp")'
+
 # Setup database
 bin/rails db:migrate
 bin/rails db:seed
 
-# Run tests (full suite ~49 seconds)
+# Run tests (full suite ~62 seconds)
 bin/rails test
 
-# Fast development test run (skips expensive Held-Karp tests, ~23 seconds)
-SKIP_HELD_KARP=1 bin/rails test
+# Single-worker skip-flag run used in sandbox verification
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
 
 # Start server
 bin/rails server
@@ -194,11 +205,12 @@ bin/rails server
 ### Viewing Results
 
 The web interface displays:
-- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, Max Flow, Min Cost Flow, and Job Shop
+- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, and Moon Phase
 - **TSP attempts (`/tsp/attempts`):** All TSP solutions with version comparison
 - **VRP attempts (`/vrp/attempts`):** All VRP solutions with capacity and distance comparison
 - **Assignment attempts (`/assignment/attempts`):** All Assignment solutions with optimal-cost comparison
 - **Job Shop attempts (`/job_shop/attempts`):** All Job Shop schedules with makespan comparison
+- **Moon Phase attempts (`/moon_phase/attempts`):** Daily Moon-fraction and monthly phase-event comparisons against astronoby
 - **Min Cost Flow attempts (`/min_cost_flow/attempts`):** All Min Cost Flow solutions with demand and cost comparison
 - **Max Flow attempts (`/max_flow/attempts`):** All Max Flow solutions with capacity and conservation validation
 - **Attempt detail:** Side-by-side candidate vs reference comparison
@@ -214,17 +226,17 @@ The web interface displays:
 
 ### Test Runtime
 
-**Full suite (49 seconds):**
+**Full suite (62 seconds):**
 ```bash
 bin/rails test
 ```
 
-**Fast development run (23 seconds, skips 13 Held-Karp tests):**
+**Single-worker skip-flag run (67 seconds, skips 13 Held-Karp tests):**
 ```bash
-SKIP_HELD_KARP=1 bin/rails test
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
 ```
 
-Note: Use full suite for CI, release checks, and final prompt verification.
+Note: The single-worker command is the verified sandbox-safe skip-flag run for this repository.
 
 ### Current Fixtures
 
@@ -276,6 +288,13 @@ Note: Use full suite for CI, release checks, and final prompt verification.
 - `jobshop_precedence_test_6x3`
 - `jobshop_medium_8x5`
 
+**Moon Phase Fixtures (5):**
+- `moon_phase_new_moon_2024_01`
+- `moon_phase_full_moon_2024_01`
+- `moon_phase_first_quarter_2024_05`
+- `moon_phase_events_2024_05`
+- `moon_phase_events_2025_03`
+
 ### Algorithm Versions
 
 **TSP:**
@@ -303,6 +322,10 @@ Note: Use full suite for CI, release checks, and final prompt verification.
 **Job Shop Scheduling:**
 - `branch-and-bound-v1` - Exact native Ruby scheduler
 - Reference: `or-tools-cp-sat-job-shop-v1`
+
+**Moon Phase:**
+- `meeus-v1` - Native Ruby Meeus-style phase calculator and event finder
+- Reference: `astronoby-v0.9.0`
 
 ## Key Findings
 
@@ -400,7 +423,8 @@ Any change touching views, routes, controllers, CSS, or user-visible layout requ
 - **Rails 7.2**
 - **SQLite3**
 - **OR-Tools 0.17.1** - Reference solver (Google)
-- **Minitest** - 109 tests, 1063 assertions
+- **Astronoby 0.9.0** - Astronomy reference solver
+- **Minitest** - 126 tests, 1109 assertions
 
 ## Future Work
 
@@ -450,7 +474,7 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 ---
 
-**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), 15 Claude errors, 10 Codex errors, 8 corrections active
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (1 prompt), 16 Claude errors, 10 Codex errors, 8 corrections active
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 

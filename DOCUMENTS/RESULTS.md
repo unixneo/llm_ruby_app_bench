@@ -1763,6 +1763,266 @@ No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
 ---
 
+## R0021 - P0021 Assignment Problem Implementation
+
+**Date:** 2026-04-17  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented P0021 as a Linear Sum Assignment benchmark.
+
+Implemented:
+
+- `AssignmentProblem` Active Record model and migration for persisted fixtures
+- `AssignmentFixtures` with five deterministic fixtures from P0021
+- `AssignmentSolver` pure Ruby Hungarian algorithm candidate
+- `GemAssignmentSolver` OR-Tools `LinearSumAssignment` reference wrapper
+- `AssignmentSolutionValidator` for one-to-one assignment and cost checks
+- `AssignmentResultComparison` for optimality/cost comparisons
+- `AssignmentAttemptRunner` to persist `Attempt` records under prompt `P0021`
+- `/assignment/attempts` route scope using the existing attempt UI
+- Assignment challenge card on the algorithm index
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and assignment attempt display
+
+### Governance Notes
+
+P0021 documents PI approval for:
+
+```text
+Option A - Hungarian Algorithm
+```
+
+Candidate source/version:
+
+```text
+hungarian
+hungarian-v1
+```
+
+Reference version:
+
+```text
+or-tools-linear-sum-assignment-v1
+```
+
+Reference API verification found one prompt snippet issue: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
+
+The prompt's manual note for `assignment_tiny_3x3` listed total cost 10, but OR-Tools and the Hungarian implementation both find a better assignment:
+
+```text
+worker 0 -> task 1 cost 2
+worker 1 -> task 0 cost 6
+worker 2 -> task 2 cost 1
+total cost 9
+```
+
+### Seeded Results
+
+After seeding, five Assignment attempts were recorded:
+
+```text
+fixture | status | candidate cost | OR-Tools cost | difference | candidate assignment | reference assignment
+assignment_asymmetric_8x8 | exact_match | 144 | 144 | 0.0 | [7, 4, 2, 3, 0, 6, 1, 5] | [7, 4, 2, 3, 0, 6, 1, 5]
+assignment_dense_15x15 | exact_match | 268 | 268 | 0.0 | [0, 4, 3, 2, 10, 1, 5, 12, 8, 7, 11, 14, 6, 9, 13] | [0, 4, 7, 2, 10, 13, 5, 8, 12, 11, 3, 14, 6, 9, 1]
+assignment_small_5x5 | exact_match | 82 | 82 | 0.0 | [0, 3, 2, 4, 1] | [0, 3, 2, 4, 1]
+assignment_sparse_10x10 | exact_match | 1170 | 1170 | 0.0 | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9] | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9]
+assignment_tiny_3x3 | exact_match | 9 | 9 | 0.0 | [1, 0, 2] | [1, 0, 2]
+```
+
+The dense 15x15 fixture has different candidate and reference assignments with the same optimal cost. It is correctly recorded as `exact_match` because assignment optimality is cost-based and multiple optimal assignments may exist.
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused P0021 tests:
+
+```bash
+bin/rails test test/models/assignment_problem_test.rb test/services/assignment_solver_test.rb test/services/gem_assignment_solver_test.rb test/services/assignment_solution_validator_test.rb test/services/assignment_result_comparison_test.rb test/services/assignment_attempt_runner_test.rb test/controllers/assignment_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+21 runs, 144 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+63 runs, 431 assertions, 0 failures, 0 errors, 13 skips
+Finished in 22.864632s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+63 runs, 665 assertions, 0 failures, 0 errors, 0 skips
+Finished in 49.686678s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+---
+
+## R0022 - P0022 Max Flow Problem Implementation
+
+**Date:** 2026-04-18  
+**Codex Status:** Completed
+
+### Summary
+
+Implemented P0022 as a Maximum Flow benchmark.
+
+Implemented:
+
+- `MaxFlowProblem` Active Record model and migration for persisted network fixtures
+- `MaxFlowFixtures` with five deterministic fixtures from P0022
+- `MaxFlowSolver` pure Ruby Edmonds-Karp candidate
+- `GemMaxFlowSolver` OR-Tools `SimpleMaxFlow` reference wrapper
+- `MaxFlowSolutionValidator` for conservation, capacity, non-negativity, source-flow, and sink-flow checks
+- `MaxFlowResultComparison` for optimality and validation comparison
+- `MaxFlowAttemptRunner` to persist `Attempt` records under prompt `P0022`
+- `/max_flow/attempts` route scope using the existing attempt UI
+- Max Flow challenge card on the algorithm index
+- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and Max Flow attempt display
+
+### Governance Notes
+
+P0022 documents PI approval for:
+
+```text
+Option A - Edmonds-Karp
+```
+
+Candidate source/version:
+
+```text
+edmonds-karp
+edmonds-karp-v1
+```
+
+Reference version:
+
+```text
+or-tools-simple-max-flow-v1
+```
+
+Reference API verification found the same require naming issue seen in P0021: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
+
+`SimpleMaxFlow` API was verified locally with:
+
+```text
+add_arc_with_capacity
+solve
+optimal_flow
+num_arcs
+tail
+head
+capacity
+flow
+```
+
+### Seeded Results
+
+After seeding, five Max Flow attempts were recorded:
+
+```text
+fixture | status | candidate max flow | OR-Tools max flow | difference
+maxflow_bottleneck_6 | exact_match | 23 | 23 | 0.0
+maxflow_complex_12 | exact_match | 33 | 33 | 0.0
+maxflow_dense_15 | exact_match | 54 | 54 | 0.0
+maxflow_parallel_8 | exact_match | 30 | 30 | 0.0
+maxflow_simple_4 | exact_match | 15 | 15 | 0.0
+```
+
+All candidate flows satisfied:
+
+- flow conservation at intermediate nodes
+- edge capacity constraints
+- nonnegative flow
+- reported max flow equals source outflow
+- source outflow equals sink inflow
+
+### Verification
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Seed command:
+
+```bash
+bin/rails db:seed
+```
+
+Focused P0022 tests:
+
+```bash
+bin/rails test test/models/max_flow_problem_test.rb test/services/max_flow_solver_test.rb test/services/gem_max_flow_solver_test.rb test/services/max_flow_solution_validator_test.rb test/services/max_flow_result_comparison_test.rb test/services/max_flow_attempt_runner_test.rb test/controllers/max_flow_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+```
+
+Output:
+
+```text
+24 runs, 157 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Skip-flag full suite:
+
+```bash
+SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+80 runs, 547 assertions, 0 failures, 0 errors, 13 skips
+Finished in 22.599842s
+```
+
+Default full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+80 runs, 781 assertions, 0 failures, 0 errors, 0 skips
+Finished in 48.596436s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+---
+
 ## R0023 - P0023 Minimum Cost Flow Problem Implementation
 
 **Date:** 2026-04-22  
@@ -2062,211 +2322,128 @@ Finished in 54.758270s
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
 
-## R0021 - P0021 Assignment Problem Implementation
-
-**Date:** 2026-04-17  
-**Codex Status:** Completed
-
-### Summary
-
-Implemented P0021 as a Linear Sum Assignment benchmark.
-
-Implemented:
-
-- `AssignmentProblem` Active Record model and migration for persisted fixtures
-- `AssignmentFixtures` with five deterministic fixtures from P0021
-- `AssignmentSolver` pure Ruby Hungarian algorithm candidate
-- `GemAssignmentSolver` OR-Tools `LinearSumAssignment` reference wrapper
-- `AssignmentSolutionValidator` for one-to-one assignment and cost checks
-- `AssignmentResultComparison` for optimality/cost comparisons
-- `AssignmentAttemptRunner` to persist `Attempt` records under prompt `P0021`
-- `/assignment/attempts` route scope using the existing attempt UI
-- Assignment challenge card on the algorithm index
-- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and assignment attempt display
-
-### Governance Notes
-
-P0021 documents PI approval for:
-
-```text
-Option A - Hungarian Algorithm
-```
-
-Candidate source/version:
-
-```text
-hungarian
-hungarian-v1
-```
-
-Reference version:
-
-```text
-or-tools-linear-sum-assignment-v1
-```
-
-Reference API verification found one prompt snippet issue: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
-
-The prompt's manual note for `assignment_tiny_3x3` listed total cost 10, but OR-Tools and the Hungarian implementation both find a better assignment:
-
-```text
-worker 0 -> task 1 cost 2
-worker 1 -> task 0 cost 6
-worker 2 -> task 2 cost 1
-total cost 9
-```
-
-### Seeded Results
-
-After seeding, five Assignment attempts were recorded:
-
-```text
-fixture | status | candidate cost | OR-Tools cost | difference | candidate assignment | reference assignment
-assignment_asymmetric_8x8 | exact_match | 144 | 144 | 0.0 | [7, 4, 2, 3, 0, 6, 1, 5] | [7, 4, 2, 3, 0, 6, 1, 5]
-assignment_dense_15x15 | exact_match | 268 | 268 | 0.0 | [0, 4, 3, 2, 10, 1, 5, 12, 8, 7, 11, 14, 6, 9, 13] | [0, 4, 7, 2, 10, 13, 5, 8, 12, 11, 3, 14, 6, 9, 1]
-assignment_small_5x5 | exact_match | 82 | 82 | 0.0 | [0, 3, 2, 4, 1] | [0, 3, 2, 4, 1]
-assignment_sparse_10x10 | exact_match | 1170 | 1170 | 0.0 | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9] | [0, 3, 1, 2, 4, 5, 6, 7, 8, 9]
-assignment_tiny_3x3 | exact_match | 9 | 9 | 0.0 | [1, 0, 2] | [1, 0, 2]
-```
-
-The dense 15x15 fixture has different candidate and reference assignments with the same optimal cost. It is correctly recorded as `exact_match` because assignment optimality is cost-based and multiple optimal assignments may exist.
-
-### Verification
-
-Migration:
-
-```bash
-bin/rails db:migrate
-```
-
-Seed command:
-
-```bash
-bin/rails db:seed
-```
-
-Focused P0021 tests:
-
-```bash
-bin/rails test test/models/assignment_problem_test.rb test/services/assignment_solver_test.rb test/services/gem_assignment_solver_test.rb test/services/assignment_solution_validator_test.rb test/services/assignment_result_comparison_test.rb test/services/assignment_attempt_runner_test.rb test/controllers/assignment_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
-```
-
-Output:
-
-```text
-21 runs, 144 assertions, 0 failures, 0 errors, 0 skips
-```
-
-Skip-flag full suite:
-
-```bash
-SKIP_HELD_KARP=1 bin/rails test
-```
-
-Output:
-
-```text
-63 runs, 431 assertions, 0 failures, 0 errors, 13 skips
-Finished in 22.864632s
-```
-
-Default full suite:
-
-```bash
-bin/rails test
-```
-
-Output:
-
-```text
-63 runs, 665 assertions, 0 failures, 0 errors, 0 skips
-Finished in 49.686678s
-```
-
-No PATH prefix, shell wrapper, or vendor bundle workaround was used.
-
 ---
 
-## R0022 - P0022 Max Flow Problem Implementation
+## R0025 - P0025 Moon Phase Calculations Implementation
 
-**Date:** 2026-04-18  
-**Codex Status:** Completed
+**Date:** 2026-04-23  
+**Codex Status:** Completed under PI-approved Option A using the current local `astronoby` release
 
 ### Summary
 
-Implemented P0022 as a Maximum Flow benchmark.
+Implemented P0025 as the first astronomy benchmark lane.
 
 Implemented:
 
-- `MaxFlowProblem` Active Record model and migration for persisted network fixtures
-- `MaxFlowFixtures` with five deterministic fixtures from P0022
-- `MaxFlowSolver` pure Ruby Edmonds-Karp candidate
-- `GemMaxFlowSolver` OR-Tools `SimpleMaxFlow` reference wrapper
-- `MaxFlowSolutionValidator` for conservation, capacity, non-negativity, source-flow, and sink-flow checks
-- `MaxFlowResultComparison` for optimality and validation comparison
-- `MaxFlowAttemptRunner` to persist `Attempt` records under prompt `P0022`
-- `/max_flow/attempts` route scope using the existing attempt UI
-- Max Flow challenge card on the algorithm index
-- focused tests for model validation, candidate solver, reference solver, validator, comparison, runner, challenge routing, and Max Flow attempt display
+- `MoonPhaseProblem` Active Record model and migration for persisted astronomy fixtures
+- `MoonPhaseFixtures` with three daily Moon-phase fixtures and two monthly event fixtures
+- `MoonPhaseCalculator` native Ruby candidate for daily illuminated fraction, phase fraction, and phase naming
+- `MoonPhaseEventFinder` native Ruby candidate for monthly major lunar phase events
+- `GemMoonPhaseSolver` reference wrapper around `astronoby 0.9.0`
+- `MoonPhaseSolutionValidator` for range checks, event completeness, chronology, and tolerance enforcement
+- `MoonPhaseResultComparison` for daily fraction differences and monthly event-time offsets
+- `MoonPhaseAttemptRunner` to persist `Attempt` records under prompt `P0025`
+- `/moon_phase/attempts` route scope using the shared attempt UI
+- Moon Phase challenge card on the algorithm index
+- generic attempt display support for astronomy results and Astronoby reference labeling
+- focused tests for model validation, candidate calculations, event finding, reference solver behavior, validator, comparison, runner, challenge routing, and moon-phase attempt display
 
 ### Governance Notes
-
-P0022 documents PI approval for:
-
-```text
-Option A - Edmonds-Karp
-```
 
 Candidate source/version:
 
 ```text
-edmonds-karp
-edmonds-karp-v1
+meeus
+meeus-v1
 ```
 
 Reference version:
 
 ```text
-or-tools-simple-max-flow-v1
+astronoby-v0.9.0
 ```
 
-Reference API verification found the same require naming issue seen in P0021: the app requires OR-Tools with `require "or-tools"`, not `require "or_tools"`. The implemented wrapper follows the existing project pattern.
+P0025 was not implemented literally as written. The prompt claimed:
 
-`SimpleMaxFlow` API was verified locally with:
+- `astronoby v0.7.0`
+- `de421.bsp` as a blanket mandatory dependency
+
+Under PI-approved Option A, Codex verified the current local gem/API instead of trusting the prompt verbatim.
+
+Verified local behavior:
+
+- `Astronoby::Events::MoonPhases.phases_for(year:, month:)` works in `astronoby 0.9.0` without ephemeris loading
+- `Astronoby::Moon.new(ephem:, instant:)` still requires `de421.bsp` for daily illuminated fraction and phase fraction
+
+So the implemented benchmark documents the actual split:
+
+- monthly event reference calls are ephemeris-free
+- daily Moon-fraction reference calls require `tmp/de421.bsp`
+
+This prompt issue is documented separately in `CLE0016`.
+
+### Verified Results
+
+After seeding, five Moon Phase attempts were recorded:
 
 ```text
-add_arc_with_capacity
-solve
-optimal_flow
-num_arcs
-tail
-head
-capacity
-flow
+fixture | status | key difference
+moon_phase_events_2024_05 | feasible | max event offset 1.166666666667 minutes
+moon_phase_events_2025_03 | feasible | max event offset 1.166666666667 minutes
+moon_phase_first_quarter_2024_05 | feasible | max fraction difference 0.000698
+moon_phase_full_moon_2024_01 | feasible | max fraction difference 0.001734
+moon_phase_new_moon_2024_01 | feasible | max fraction difference 0.001911
 ```
 
-### Seeded Results
+Observed candidate/reference behavior:
 
-After seeding, five Max Flow attempts were recorded:
+- daily phase-fraction differences were effectively negligible
+- daily illuminated-fraction differences stayed well within the `0.02` tolerance
+- monthly event predictions were consistently about `70` seconds later than `astronoby`, still far inside the `60` minute tolerance
+- all five fixtures passed validation
+
+### UI Verification
+
+Direct localhost verification was performed after seeding:
+
+- root page shows the Moon Phase challenge card
+- root card shows `5 fixtures`, `1 algorithm`, and `5 attempts`
+- `/moon_phase/attempts` shows only Moon Phase attempts
+- `/moon_phase/attempts/:id` renders Astronoby as the reference badge and keeps the PI interpretation form inside the moon-phase route scope
+
+Verified scoped UI behavior:
 
 ```text
-fixture | status | candidate max flow | OR-Tools max flow | difference
-maxflow_bottleneck_6 | exact_match | 23 | 23 | 0.0
-maxflow_complex_12 | exact_match | 33 | 33 | 0.0
-maxflow_dense_15 | exact_match | 54 | 54 | 0.0
-maxflow_parallel_8 | exact_match | 30 | 30 | 0.0
-maxflow_simple_4 | exact_match | 15 | 15 | 0.0
+/moon_phase/attempts
+/moon_phase/attempts/53
+/moon_phase/attempts/53/interpretations
 ```
 
-All candidate flows satisfied:
+No new user-visible UI bugs were found during this verification pass.
 
-- flow conservation at intermediate nodes
-- edge capacity constraints
-- nonnegative flow
-- reported max flow equals source outflow
-- source outflow equals sink inflow
+Follow-up display correction after PI review:
+
+- the initial moon-phase index used a generic `Max Difference` label for both daily fraction deltas and monthly event-time offsets
+- this was semantically misleading because the page mixed unitless fraction differences with minute offsets
+- the shared attempt UI was updated so Moon Phase fixtures now render:
+  - `Max Fraction Difference` for daily fixtures
+  - `Max Event Offset (minutes)` for monthly event fixtures
+
+This was a UI-semantics correction only. No benchmark values, statuses, fixtures, tolerances, or solver outputs changed.
 
 ### Verification
+
+Dependency installation:
+
+```bash
+bundle install
+```
+
+Ephemeris download used for daily reference calls:
+
+```bash
+bundle exec ruby -e 'require "astronoby"; Astronoby::Ephem.download(name: "de421.bsp", target: "tmp/de421.bsp")'
+```
 
 Migration:
 
@@ -2274,38 +2451,20 @@ Migration:
 bin/rails db:migrate
 ```
 
-Seed command:
+Focused P0025 tests:
 
 ```bash
-bin/rails db:seed
-```
-
-Focused P0022 tests:
-
-```bash
-bin/rails test test/models/max_flow_problem_test.rb test/services/max_flow_solver_test.rb test/services/gem_max_flow_solver_test.rb test/services/max_flow_solution_validator_test.rb test/services/max_flow_result_comparison_test.rb test/services/max_flow_attempt_runner_test.rb test/controllers/max_flow_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
+bin/rails test test/models/moon_phase_problem_test.rb test/services/moon_phase_calculator_test.rb test/services/moon_phase_event_finder_test.rb test/services/gem_moon_phase_solver_test.rb test/services/moon_phase_solution_validator_test.rb test/services/moon_phase_result_comparison_test.rb test/services/moon_phase_attempt_runner_test.rb test/controllers/moon_phase_attempts_controller_test.rb test/controllers/challenges_controller_test.rb
 ```
 
 Output:
 
 ```text
-24 runs, 157 assertions, 0 failures, 0 errors, 0 skips
+30 runs, 127 assertions, 0 failures, 0 errors, 0 skips
+Finished in 1.185875s
 ```
 
-Skip-flag full suite:
-
-```bash
-SKIP_HELD_KARP=1 bin/rails test
-```
-
-Output:
-
-```text
-80 runs, 547 assertions, 0 failures, 0 errors, 13 skips
-Finished in 22.599842s
-```
-
-Default full suite:
+Full suite:
 
 ```bash
 bin/rails test
@@ -2314,8 +2473,21 @@ bin/rails test
 Output:
 
 ```text
-80 runs, 781 assertions, 0 failures, 0 errors, 0 skips
-Finished in 48.596436s
+126 runs, 1109 assertions, 0 failures, 0 errors, 0 skips
+Finished in 62.173162s
+```
+
+Single-worker skip-flag suite:
+
+```bash
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+126 runs, 875 assertions, 0 failures, 0 errors, 13 skips
+Finished in 67.039716s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.

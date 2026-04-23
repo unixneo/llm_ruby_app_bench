@@ -4,6 +4,8 @@ AssignmentFixtures.seed!
 AssignmentAttemptRunner.new.run_all
 JobShopFixtures.seed!
 JobShopAttemptRunner.new.run_all
+MoonPhaseFixtures.seed!
+MoonPhaseAttemptRunner.new.run_all
 MinCostFlowFixtures.seed!
 MinCostFlowAttemptRunner.new.run_all
 MaxFlowFixtures.seed!

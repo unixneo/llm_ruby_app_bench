@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_23_000010) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_23_010000) do
   create_table "assignment_problems", force: :cascade do |t|
     t.string "name", null: false
     t.integer "workers", null: false
@@ -89,6 +89,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_23_000010) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_min_cost_flow_problems_on_name", unique: true
+  end
+
+  create_table "moon_phase_problems", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "fixture_type", null: false
+    t.date "observation_date"
+    t.integer "year"
+    t.integer "month"
+    t.float "expected_illuminated_fraction"
+    t.float "expected_phase_fraction"
+    t.string "expected_phase_name"
+    t.text "expected_events"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_moon_phase_problems_on_name", unique: true
   end
 
   create_table "prompts", force: :cascade do |t|

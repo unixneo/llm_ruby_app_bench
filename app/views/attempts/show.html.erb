@@ -5,6 +5,8 @@ elsif @attempt.route_path_name == :assignment
   assignment_attempts_path
 elsif @attempt.route_path_name == :job_shop
   job_shop_attempts_path
+elsif @attempt.route_path_name == :moon_phase
+  moon_phase_attempts_path
 elsif @attempt.route_path_name == :min_cost_flow
   min_cost_flow_attempts_path
 elsif @attempt.route_path_name == :max_flow
@@ -18,6 +20,8 @@ elsif @attempt.route_path_name == :assignment
   assignment_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :job_shop
   job_shop_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :moon_phase
+  moon_phase_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :min_cost_flow
   min_cost_flow_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :max_flow
@@ -93,7 +97,7 @@ end %>
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Gem Reference Result</h2>
-      <span class="badge badge-reference">OR-Tools</span>
+      <span class="badge badge-reference"><%= @attempt.challenge.name == "Moon Phase Calculations" ? "Astronoby" : "OR-Tools" %></span>
     </div>
     <pre class="result-json"><%= JSON.pretty_generate(@attempt.reference_result_data) %></pre>
   </div>

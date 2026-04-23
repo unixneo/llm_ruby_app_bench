@@ -1128,3 +1128,42 @@ Similarly, "candidate may use heuristic" is not a harmless flexibility clause wh
 
 **Status:** Error caught during implementation; exact candidate scope confirmed by PI; Ruby API usage corrected in implementation  
 **Affected prompt:** P0024
+
+
+---
+
+# CLE0016: Incorrect gem version and unverified ephemeris requirement in P0025 prompt
+
+**Date:** 2026-04-22
+**Prompt:** P0025 (Moon Phase Calculations)
+**Error Type:** Specification Error - Unverified gem version and API assumptions
+**Detected By:** Codex before implementation
+**Phase:** Prompt specification
+
+## Error Description
+
+Architect (Claude) specified `astronoby` v0.7.0 in the P0025 prompt and documented `de421.bsp` as a mandatory dependency, but the local environment has `astronoby` v0.9.0 installed and the earlier project survey notes indicate `Astronoby::Events::MoonPhases.phases_for(year:, month:)` may not require the ephemeris file in the current version.
+
+The prompt was written from the astronoby wiki without verifying the locally installed gem version or testing whether the ephemeris file is actually required by the methods used in the benchmark.
+
+## Root Cause
+
+Same class of error as CLE0015. Architect documented reference API from an online source (the astronoby wiki) without verifying it against the actual gem version installed in the project. The wiki reflects the current release, but the version documented in the prompt (v0.7.0) does not match the locally installed version (v0.9.0), and API behaviour may differ between versions.
+
+## Impact
+
+- ❌ Prompt specified wrong gem version
+- ❌ Ephemeris requirement stated as mandatory without local verification
+- ✅ Codex caught the inconsistency before implementation began
+- ✅ PI approved Option A: implement against installed version, verify ephemeris requirement locally
+
+## Correction
+
+PI approved Option A. Codex will implement P0025 against the locally installed `astronoby` version, verify whether `de421.bsp` is required for the methods actually used, and document the actual API in R0025.
+
+## Prevention
+
+Before writing any reference API snippet in a prompt, Architect must verify against the locally installed gem version, not an online source. The locally installed version is the ground truth for this project.
+
+**Status:** Caught by Codex before implementation; PI resolved via Option A  
+**Affected prompt:** P0025

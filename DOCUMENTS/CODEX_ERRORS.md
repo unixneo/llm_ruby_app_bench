@@ -504,3 +504,69 @@ When extending a shared multi-algorithm UI, Codex must verify all of these toget
 - nil fallback does not silently widen scope to all records
 
 This was not a solver bug. It was a shared-UI integration bug caused by incomplete propagation of a new challenge type through the generic attempts page.
+
+---
+
+## CE0012 - Results Ledger Left Out of Numeric Order
+
+**Date:** 2026-04-23  
+**Prompt:** P0024/R0024 and P0025/R0025 follow-up documentation  
+**Severity:** Medium (research ledger integrity/documentation quality failure)
+
+### Error Description
+
+After documenting `R0024` and `R0025`, `DOCUMENTS/RESULTS.md` was left structurally disordered:
+
+- `R0025` appeared before `R0024`
+- `R0021` and `R0022` appeared after `R0024`
+- the tail of the file no longer read in clean numeric sequence
+
+This made the results ledger harder to trust and review, even though the underlying implementation content was present.
+
+### Root Cause
+
+Codex appended new result sections opportunistically where work was already in progress instead of normalizing the full tail of the results ledger.
+
+The failure was not about missing content. It was about failing to maintain the repository's numbered research artifact in a clean ordered state after multiple incremental updates.
+
+### Why This Is a Codex Error
+
+`RESULTS.md` is a core experimental ledger, not incidental documentation. Ordered numbering is part of the project’s traceability model.
+
+Codex should have treated the file as a numbered registry and verified:
+
+- new result sections were inserted in numeric order
+- prior result sections still appeared in numeric order after edits
+- follow-up documentation notes did not leave the ledger structurally confusing
+
+Instead, Codex left the file in a state where a reviewer could reasonably conclude the results trail was sloppy or unreliable.
+
+### Impact
+
+- ✅ implementation summaries themselves were present
+- ✅ result content for `R0021` through `R0025` was preserved
+- ❌ the numbered ledger was out of order
+- ❌ repository-state review became unnecessarily confusing
+- ❌ Claude correctly caught a real documentation-ordering problem
+
+### Fix Applied
+
+The tail of `DOCUMENTS/RESULTS.md` was reordered so the later result sections now appear in numeric sequence:
+
+```text
+R0021
+R0022
+R0023
+R0024
+R0025
+```
+
+### Lesson
+
+For numbered research ledgers, “content exists” is not enough. Codex must also preserve ordering and registry hygiene.
+
+When updating `PROMPTS.md`, `RESULTS.md`, or error ledgers:
+
+- verify the new entry number
+- verify surrounding entries remain in order
+- treat the ledger like a journal index, not a scratchpad

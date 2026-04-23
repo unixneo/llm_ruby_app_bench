@@ -848,3 +848,651 @@ For each fixture:
 
 **Approved algorithm:** Successive Shortest Path  
 **PI approval:** 2026-04-22
+
+
+---
+
+# P0024: Job Shop Scheduling Problem Implementation
+
+**Date:** 2026-04-22  
+**Status:** Ready for implementation  
+**Architect:** Claude  
+**Algorithm:** Constraint Programming (CP-SAT solver)
+
+## Problem Statement
+
+Implement the Job Shop Scheduling Problem solver using constraint programming with the CP-SAT solver from OR-Tools.
+
+**Problem definition:**
+- Input: Set of jobs, each job has ordered tasks, each task requires a specific machine and has a duration
+- Goal: Assign start times to all tasks to minimize makespan (total completion time)
+- Constraints: 
+  * Each machine processes at most one task at a time (no overlap)
+  * Task precedence within each job must be respected
+  * All tasks must be scheduled
+- Output: Optimal makespan and task start times
+
+**Complexity:** NP-hard (constraint satisfaction with optimization)
+
+## Algorithm: Constraint Programming with CP-SAT
+
+**Overview:**
+The CP-SAT (Constraint Programming - Boolean Satisfiability) solver from OR-Tools handles Job Shop Scheduling by modeling tasks as interval variables with precedence and no-overlap constraints. Unlike heuristic approaches, CP-SAT searches for provably optimal solutions using constraint propagation and branch-and-bound techniques.
+
+**Key concepts:**
+- **Interval variables:** Represent tasks with start time, duration, and end time
+- **Precedence constraints:** Task B cannot start until Task A completes (within same job)
+- **No-overlap constraints:** Tasks assigned to same machine cannot execute simultaneously
+- **Objective:** Minimize maximum end time across all tasks (makespan)
+- **Horizon:** Upper bound on schedule duration (sum of all task durations provides safe bound)
+
+**Algorithm steps:**
+
+1. **Define horizon:** Calculate maximum possible schedule duration (sum of all task durations provides conservative upper bound)
+
+2. **Create interval variables:** For each task, create interval variable representing its execution window with start time, duration, and end time
+
+3. **Add precedence constraints:** For each job, ensure tasks execute in specified order by constraining each task's start to occur after previous task's end
+
+4. **Add no-overlap constraints:** For each machine, create no-overlap constraint ensuring all tasks assigned to that machine do not execute simultaneously
+
+5. **Define objective:** Create makespan variable representing maximum end time across all tasks, then minimize this variable
+
+6. **Solve:** Invoke CP-SAT solver to find optimal solution
+
+**Termination:** Solver returns OPTIMAL status when provably optimal schedule found, or FEASIBLE status with best solution found within time limit
+
+**Reference materials:**
+- OR-Tools CP-SAT documentation for Job Shop Scheduling
+- Taillard benchmark instances for standard test problems
+- Wikipedia "Job Shop Scheduling" for problem definition
+
+
+## Test Fixtures
+
+Create five job shop scheduling fixtures in db/seeds.rb:
+
+### Fixture 1: jobshop_tiny_3x3
+```ruby
+{
+  name: "jobshop_tiny_3x3",
+  jobs: [
+    [[0, 3], [1, 2], [2, 2]],  # Job 0: Machine 0 for 3 time units, then Machine 1 for 2, then Machine 2 for 2
+    [[0, 2], [2, 1], [1, 4]],  # Job 1: Machine 0 for 2, then Machine 2 for 1, then Machine 1 for 4
+    [[1, 4], [2, 3]]           # Job 2: Machine 1 for 4, then Machine 2 for 3
+  ],
+  description: "Tiny 3 jobs on 3 machines, manual verification possible (optimal makespan = 11)"
+}
+```
+**Expected:** Optimal makespan = 11 time units
+
+### Fixture 2: jobshop_small_4x4
+```ruby
+{
+  name: "jobshop_small_4x4",
+  jobs: [
+    [[0, 4], [1, 3], [2, 1], [3, 2]],
+    [[1, 2], [0, 3], [3, 4], [2, 1]],
+    [[2, 3], [3, 2], [0, 2], [1, 3]],
+    [[3, 1], [2, 4], [1, 2], [0, 3]]
+  ],
+  description: "Small 4 jobs on 4 machines with varied task orderings"
+}
+```
+**Expected:** Optimal makespan to be determined by OR-Tools reference
+
+
+### Fixture 3: jobshop_asymmetric_5x4
+```ruby
+{
+  name: "jobshop_asymmetric_5x4",
+  jobs: [
+    [[0, 5], [2, 3], [3, 2]],
+    [[1, 4], [0, 2], [3, 3], [2, 1]],
+    [[2, 2], [1, 3], [0, 4]],
+    [[3, 3], [2, 2], [1, 1], [0, 2]],
+    [[0, 1], [1, 5], [3, 2], [2, 3]]
+  ],
+  description: "5 jobs with different number of tasks on 4 machines (asymmetric job lengths)"
+}
+```
+**Expected:** Optimal makespan to be determined by OR-Tools reference
+
+### Fixture 4: jobshop_precedence_test_6x3
+```ruby
+{
+  name: "jobshop_precedence_test_6x3",
+  jobs: [
+    [[0, 3], [1, 2], [2, 4]],
+    [[1, 2], [0, 3], [2, 1]],
+    [[2, 3], [0, 2], [1, 3]],
+    [[0, 4], [2, 2], [1, 1]],
+    [[1, 3], [2, 2], [0, 2]],
+    [[2, 1], [1, 4], [0, 3]]
+  ],
+  description: "6 jobs on 3 machines designed to test strict precedence constraint enforcement"
+}
+```
+**Expected:** Optimal makespan to be determined by OR-Tools reference
+
+
+### Fixture 5: jobshop_medium_8x5
+```ruby
+{
+  name: "jobshop_medium_8x5",
+  jobs: [
+    [[0, 2], [1, 3], [2, 2], [3, 1], [4, 2]],
+    [[1, 1], [0, 4], [3, 2], [2, 3], [4, 1]],
+    [[2, 3], [4, 2], [0, 1], [1, 2], [3, 3]],
+    [[3, 2], [2, 1], [4, 3], [0, 2], [1, 1]],
+    [[4, 1], [1, 2], [0, 3], [2, 1], [3, 2]],
+    [[0, 3], [3, 2], [1, 1], [4, 2], [2, 3]],
+    [[1, 2], [2, 2], [3, 3], [4, 1], [0, 2]],
+    [[2, 1], [0, 2], [4, 3], [1, 2], [3, 1]]
+  ],
+  description: "Medium complexity: 8 jobs on 5 machines with full task sequences"
+}
+```
+**Expected:** Optimal makespan to be determined by OR-Tools reference
+
+## Reference Implementation
+
+Use OR-Tools CP-SAT solver:
+
+```ruby
+require 'or_tools'
+
+solver = ORTools::CpSolver.new
+model = ORTools::CpModel.new
+
+# Calculate horizon
+horizon = jobs.flat_map { |job| job.map { |task| task[1] } }.sum
+
+# Create interval variables for each task
+task_vars = {}
+jobs.each_with_index do |job, job_id|
+  job.each_with_index do |(machine, duration), task_id|
+    start_var = model.new_int_var(0, horizon, "start_#{job_id}_#{task_id}")
+    end_var = model.new_int_var(0, horizon, "end_#{job_id}_#{task_id}")
+    interval_var = model.new_interval_var(start_var, duration, end_var, "interval_#{job_id}_#{task_id}")
+    task_vars[[job_id, task_id]] = { start: start_var, end: end_var, interval: interval_var, machine: machine }
+  end
+end
+
+# Add precedence constraints (within each job)
+jobs.each_with_index do |job, job_id|
+  job.each_cons(2).with_index do |(task1, task2), task_id|
+    model.add(task_vars[[job_id, task_id + 1]][:start] >= task_vars[[job_id, task_id]][:end])
+  end
+end
+
+# Add no-overlap constraints (for each machine)
+machines = task_vars.values.group_by { |task| task[:machine] }
+machines.each do |machine_id, tasks|
+  model.add_no_overlap(tasks.map { |task| task[:interval] })
+end
+
+# Define objective: minimize makespan
+makespan = model.new_int_var(0, horizon, "makespan")
+task_vars.values.each do |task|
+  model.add(makespan >= task[:end])
+end
+model.minimize(makespan)
+
+# Solve
+status = solver.solve(model)
+
+if status == :optimal || status == :feasible
+  optimal_makespan = solver.value(makespan)
+  # Extract task start times: solver.value(task_vars[[job_id, task_id]][:start])
+end
+```
+
+
+## Candidate Implementation
+
+Create JobShopScheduler class that implements constraint programming approach:
+
+**Required methods:**
+- initialize: accepts jobs array where each job is array of [machine_id, duration] pairs
+- solve: returns hash with optimal_makespan and task_start_times
+- validate_schedule: verifies precedence constraints, no machine overlaps, all tasks scheduled
+
+**Data structure:**
+- Task: job_id, task_id, machine_id, duration, start_time, end_time
+- Schedule: collection of tasks with assigned start times
+
+**Algorithm components:**
+- build_constraints: creates precedence and no-overlap constraint graph
+- search_space_reduction: uses constraint propagation to reduce possible start times
+- branch_and_bound: systematically searches for optimal solution
+- validate_solution: checks constraint satisfaction and calculates makespan
+
+**Note:** Candidate implementation may use simplified CP approach or constraint-aware heuristic. Full CP-SAT solver implementation not required, but solution must respect all constraints.
+
+## Validation Requirements
+
+For each fixture:
+
+1. **Precedence constraints satisfied:** Within each job, tasks execute in specified order (task N plus one starts after task N ends)
+2. **No machine conflicts:** No two tasks assigned to same machine execute simultaneously
+3. **All tasks scheduled:** Every task has assigned start time
+4. **Makespan calculated correctly:** Maximum end time across all tasks
+
+5. **Optimality comparison:** Candidate makespan compared against OR-Tools optimal makespan
+
+## Comparison Metrics
+
+**Primary metric:** Candidate makespan versus OR-Tools optimal makespan
+
+**Secondary metrics:**
+- Constraint violation count (should be zero for valid schedules)
+- Schedule compactness (idle time on machines)
+- Solution time for candidate versus reference
+
+**Error patterns to detect:**
+- Precedence constraint violations (task starts before predecessor completes)
+- Machine overlap conflicts (two tasks on same machine at same time)
+- Incomplete schedules (some tasks not assigned start times)
+- Suboptimal makespan (valid schedule but longer than optimal)
+- False optimality claims (candidate reports optimal but schedule has slack)
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures pass validation** - Schedules satisfy precedence, no-overlap, and completeness constraints
+2. ✅ **Optimal or near-optimal solutions** - Candidate makespan matches or is close to OR-Tools optimal
+3. ✅ **Tests pass** - All unit tests green
+4. ✅ **CP or constraint-aware approach implemented** - Solution respects constraint structure
+5. ✅ **Performance acceptable** - 8-job problem solves in under 30 seconds
+
+## Expected Behavior
+
+**For all 5 fixtures:**
+- Candidate produces valid schedule (validation passes)
+- Precedence constraints respected within each job
+- No machine conflicts (no simultaneous tasks on same machine)
+- All tasks scheduled with start times
+- Makespan comparison with OR-Tools shows quality gap if heuristic used
+
+
+**Comparison with previous algorithms:**
+- TSP/VRP: Routing problems (sequencing and assignment)
+- Assignment: Bipartite matching (one-to-one pairing)
+- Max Flow/Min Cost Flow: Network flow (capacity and cost optimization)
+- Job Shop: Scheduling with precedence and resource constraints
+
+All are combinatorial optimization problems but Job Shop adds temporal constraints and resource contention.
+
+## Implementation Notes
+
+**Algorithm complexity:**
+- Job Shop Scheduling is NP-hard, no polynomial exact algorithm known
+- CP-SAT provides optimal solutions but may take exponential time for large instances
+- Candidate may use heuristics (earliest start time, critical path) for tractability
+- Approximately 200 to 300 lines of algorithmic code expected
+
+**Testing strategy:**
+- Start with tiny 3x3 fixture (manual verification possible: makespan equals 11)
+- Verify constraint satisfaction on all fixtures
+- Compare makespan quality against OR-Tools
+- Edge cases: single job, single machine, very long task sequences
+
+**UI considerations:**
+- Gantt chart visualization showing tasks on timeline
+- Color-code tasks by job
+- Display machine assignments and task durations
+- Show precedence dependencies
+- Highlight critical path if identified
+- Display makespan prominently
+- Compare candidate makespan with OR-Tools reference
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved algorithm:** Constraint Programming (CP-SAT solver for reference, CP-aware approach for candidate)  
+**PI approval:** 2026-04-22
+
+
+---
+
+# P0025: Moon Phase Calculations
+
+**Date:** 2026-04-22
+**Status:** Ready for implementation
+**Architect:** Claude
+**Reference gem:** `astronoby` (v0.7.0)
+
+## Prerequisites
+
+This prompt introduces the astronomy domain and the `astronoby` gem.
+It requires a one-time ephemeris download before seeding or running tests.
+
+```bash
+bundle add astronoby
+bin/rails runner "Ephem::IO::Download.call(name: 'de421.bsp', target: 'tmp/de421.bsp')"
+```
+
+The file `tmp/de421.bsp` (17 MB) must be present on the local filesystem.
+It should be added to `.gitignore`. It is not committed to the repository.
+
+## Problem Statement
+
+Calculate Moon phase data for specific UTC instants and compare a native Ruby
+candidate implementation against the `astronoby` reference gem.
+
+**Outputs to compare per fixture:**
+- `illuminated_fraction` - fraction of Moon surface illuminated (0.0 to 1.0)
+- `phase_fraction` - position within lunar cycle (0.0 = new moon, 0.5 = full moon, 1.0 = new moon again)
+- `phase_name` - human-readable phase label (New Moon, Waxing Crescent, First Quarter, Waxing Gibbous, Full Moon, Waning Gibbous, Last Quarter, Waning Crescent)
+
+
+## Reference Implementation
+
+Use `astronoby` gem:
+
+```ruby
+require "astronoby"
+
+ephem = Astronoby::Ephem.load("tmp/de421.bsp")
+time  = Time.utc(2025, 1, 13, 22, 27, 0)  # example: Full Moon
+instant = Astronoby::Instant.from_time(time)
+moon = Astronoby::Moon.new(instant: instant, ephem: ephem)
+
+illuminated_fraction = moon.illuminated_fraction.round(4)
+phase_fraction       = moon.current_phase_fraction.round(4)
+```
+
+**Note:** `illuminated_fraction` and `current_phase_fraction` return floats.
+Phase name derivation from `phase_fraction` follows standard 8-phase boundaries:
+- 0.0–0.0625 or 0.9375–1.0 → New Moon
+- 0.0625–0.1875 → Waxing Crescent
+- 0.1875–0.3125 → First Quarter
+- 0.3125–0.4375 → Waxing Gibbous
+- 0.4375–0.5625 → Full Moon
+- 0.5625–0.6875 → Waning Gibbous
+- 0.6875–0.8125 → Last Quarter
+- 0.8125–0.9375 → Waning Crescent
+
+## Test Fixtures
+
+Create five Moon phase fixtures in `db/seeds.rb`.
+All times are UTC. Expected values are to be confirmed by running the reference solver.
+
+### Fixture 1: moon_phase_new_moon
+```ruby
+{ name: "moon_phase_new_moon",
+  time: Time.utc(2025, 1, 29, 12, 36, 0),
+  description: "New Moon - January 2025" }
+```
+**Expected:** illuminated_fraction ≈ 0.0, phase_fraction ≈ 0.0, phase_name = "New Moon"
+
+
+
+---
+
+# P0025: Moon Phase Calculations
+
+**Date:** 2026-04-22
+**Status:** Ready for implementation
+**Architect:** Claude
+**Reference gem:** `astronoby` (verified API from official wiki, v0.7.0)
+
+## Problem Statement
+
+Implement a native Ruby Moon phase calculator and compare against the `astronoby` gem reference.
+
+**Problem definition:**
+- Input: A UTC date (year, month, day)
+- Goal: Calculate Moon phase properties for that date
+- Output: Illuminated fraction (0.0 to 1.0) and phase fraction (0.0 to 1.0)
+- Secondary output: Identify major phase events (new moon, first quarter, full moon, last quarter) for a given month
+
+**Complexity:** Numerical astronomy - trigonometric series approximation
+
+## C005 Compliance: gem verification
+
+**Gem:** `astronoby` (https://github.com/rhannequin/astronoby)
+**Version verified:** 0.7.0
+**Maintenance status:** Actively maintained, updated May 2025
+**API verified from official wiki (https://github.com/rhannequin/astronoby/wiki):**
+
+```ruby
+# One-time ephemeris download (17 MB, stored in tmp/, gitignored)
+Ephem::IO::Download.call(name: "de421.bsp", target: "tmp/de421.bsp")
+
+# Load ephemeris
+ephem = Astronoby::Ephem.load("tmp/de421.bsp")
+
+# Instantiated fraction and phase for a given UTC time
+time = Time.utc(2025, 5, 15)
+instant = Astronoby::Instant.from_time(time)
+moon = Astronoby::Moon.new(ephem: ephem, instant: instant)
+moon.illuminated_fraction.round(4)   # => Float between 0.0 and 1.0
+moon.current_phase_fraction.round(4) # => Float between 0.0 and 1.0
+
+# Major phase events for a given month
+phases = Astronoby::Events::MoonPhases.phases_for(year: 2024, month: 5)
+phases.each { |p| puts "#{p.phase}: #{p.time}" }
+# phase values: :last_quarter, :new_moon, :first_quarter, :full_moon
+# time values: UTC Time objects
+```
+
+**Ephemeris dependency:**
+- `de421.bsp` must be present at `tmp/de421.bsp`
+- Download once with `Ephem::IO::Download.call(name: "de421.bsp", target: "tmp/de421.bsp")`
+- File is 17 MB, covers 1900-2050
+- Add `tmp/de421.bsp` to `.gitignore`
+- README setup instructions must document this download step
+
+
+## Algorithm: Jean Meeus Astronomical Algorithms
+
+**Overview:**
+The standard approach for native Moon phase calculation is the algorithm from Jean Meeus "Astronomical Algorithms" (2nd ed.), which uses trigonometric series to approximate the Moon's orbital position. This is the same algorithmic basis used by most astronomy libraries including `astronoby`.
+
+**Key concepts:**
+- **Julian Day Number (JDN):** Continuous day count from noon January 1, 4713 BC used as astronomical time reference
+- **Synodic month:** 29.53058868 days, the period between identical Moon phases
+- **Phase fraction:** 0.0 = new moon, 0.25 = first quarter, 0.5 = full moon, 0.75 = last quarter, 1.0 = new moon again
+- **Illuminated fraction:** Fraction of Moon's visible surface illuminated (0.0 to 1.0), derived from elongation angle between Moon and Sun
+
+**Algorithm steps:**
+
+1. **Convert UTC date to Julian Day Number:**
+   - Account for the Gregorian calendar correction
+   - JDN provides a uniform time reference independent of calendar systems
+
+2. **Calculate days since known new moon:**
+   - Use a known new moon epoch (e.g. January 6, 2000 18:14 UTC = JDN 2451550.1)
+   - Divide elapsed days by synodic month length to get phase cycles elapsed
+
+3. **Extract phase fraction:**
+   - Take fractional part of cycles elapsed
+   - Phase fraction between 0.0 and 1.0 represents position in current lunar cycle
+
+4. **Calculate illuminated fraction:**
+   - Compute Moon's mean anomaly, Sun's mean anomaly, and Moon's argument of latitude
+   - Apply trigonometric correction terms from Meeus Chapter 48
+   - Derive elongation angle and compute illuminated fraction as (1 - cos(elongation)) / 2
+
+5. **Identify major phase events:**
+   - Search forward from start of month for phase fractions near 0.0, 0.25, 0.5, 0.75
+   - Refine event times using Newton's method or binary search to specified tolerance
+
+**Reference materials:**
+- Meeus, Jean. "Astronomical Algorithms" 2nd ed. Chapter 48 (Illuminated Fraction of the Moon's Disk)
+- Meeus, Jean. "Astronomical Algorithms" 2nd ed. Chapter 49 (Phases of the Moon)
+
+
+## Test Fixtures
+
+Create five Moon phase fixtures in db/seeds.rb. All times are UTC. Reference values must be confirmed against `astronoby` before seeding.
+
+### Fixture 1: moon_phase_new_moon_2024_01
+```ruby
+{
+  name: "moon_phase_new_moon_2024_01",
+  date: Date.new(2024, 1, 11),
+  description: "Date near January 2024 new moon - low illuminated fraction expected"
+}
+```
+
+### Fixture 2: moon_phase_full_moon_2024_01
+```ruby
+{
+  name: "moon_phase_full_moon_2024_01",
+  date: Date.new(2024, 1, 25),
+  description: "Date near January 2024 full moon - high illuminated fraction expected"
+}
+```
+
+### Fixture 3: moon_phase_first_quarter_2024_05
+```ruby
+{
+  name: "moon_phase_first_quarter_2024_05",
+  date: Date.new(2024, 5, 15),
+  description: "Date near May 2024 first quarter - moderate illuminated fraction expected"
+}
+```
+
+### Fixture 4: moon_phase_events_2024_05
+```ruby
+{
+  name: "moon_phase_events_2024_05",
+  year: 2024,
+  month: 5,
+  description: "All major phase events for May 2024 - verified against astronoby wiki example"
+}
+```
+**Known reference output from astronoby wiki:**
+- last_quarter: 2024-05-01 11:27:15 UTC
+- new_moon: 2024-05-08 03:21:56 UTC
+- first_quarter: 2024-05-15 11:48:02 UTC
+- full_moon: 2024-05-23 13:53:12 UTC
+- last_quarter: 2024-05-30 17:12:43 UTC
+
+### Fixture 5: moon_phase_events_2025_03
+```ruby
+{
+  name: "moon_phase_events_2025_03",
+  year: 2025,
+  month: 3,
+  description: "All major phase events for March 2025 - reference values from astronoby"
+}
+```
+**Reference values:** Codex must run astronoby to obtain reference values before seeding.
+
+
+## Reference Implementation
+
+Use `astronoby` gem with verified API:
+
+```ruby
+require "astronoby"
+
+ephem = Astronoby::Ephem.load("tmp/de421.bsp")
+
+# Illuminated fraction and phase fraction for a date
+time = Time.utc(year, month, day, 12, 0, 0)  # noon UTC
+instant = Astronoby::Instant.from_time(time)
+moon = Astronoby::Moon.new(ephem: ephem, instant: instant)
+
+illuminated_fraction = moon.illuminated_fraction.round(4)
+phase_fraction = moon.current_phase_fraction.round(4)
+
+# Major phase events for a month
+phases = Astronoby::Events::MoonPhases.phases_for(year: year, month: month)
+phase_events = phases.map { |p| { phase: p.phase, time: p.time } }
+```
+
+**Important:** The `astronoby` gem requires the ephemeris file at `tmp/de421.bsp`. Codex must verify this file exists before running the reference solver. If absent, run:
+
+```ruby
+Ephem::IO::Download.call(name: "de421.bsp", target: "tmp/de421.bsp")
+```
+
+## Candidate Implementation
+
+Create MoonPhaseCalculator class using Jean Meeus algorithm:
+
+**Required methods:**
+- initialize: accepts a UTC Date object
+- illuminated_fraction: returns Float between 0.0 and 1.0
+- phase_fraction: returns Float between 0.0 and 1.0 (0.0 = new moon, 0.5 = full moon)
+- phase_name: returns String (:new_moon, :waxing_crescent, :first_quarter, :waxing_gibbous, :full_moon, :waning_gibbous, :last_quarter, :waning_crescent)
+
+Create MoonPhaseEventFinder class:
+
+**Required methods:**
+- initialize: accepts year and month integers
+- major_events: returns array of hashes with :phase and :time keys, matching astronoby output format
+
+
+## Validation Requirements
+
+For illuminated fraction and phase fraction fixtures:
+
+1. **Range validity:** illuminated_fraction between 0.0 and 1.0 inclusive
+2. **Range validity:** phase_fraction between 0.0 and 1.0 inclusive
+3. **Tolerance:** candidate illuminated_fraction matches astronoby within 0.02 (2%)
+4. **Tolerance:** candidate phase_fraction matches astronoby within 0.02 (2%)
+5. **Phase name consistency:** phase_name matches expected quadrant given phase_fraction
+
+For phase event fixtures:
+
+1. **Event count:** correct number of major phase events for the month
+2. **Event types present:** new_moon, first_quarter, full_moon, last_quarter all represented
+3. **Time tolerance:** candidate event times match astronoby within 60 minutes
+4. **Ordering:** events appear in chronological order
+
+## Comparison Metrics
+
+**Primary metrics:**
+- illuminated_fraction difference (candidate vs astronoby)
+- phase_fraction difference (candidate vs astronoby)
+- phase event time offset in minutes (candidate vs astronoby)
+
+**Expected LLM failure modes (from NEXT_PROJECT_SHORTLIST.md):**
+- UTC vs local time confusion
+- Julian date conversion errors
+- Event boundary mistakes near month transitions
+- Tolerance or rounding errors presented as exact results
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures pass validation** - fractions within tolerance, events within 60 minutes
+2. ✅ **Reference solver runs** - astronoby produces values using de421.bsp
+3. ✅ **Candidate implemented** - Jean Meeus algorithm with JDN and synodic month
+4. ✅ **Tests pass** - All unit tests green
+5. ✅ **Performance acceptable** - All calculations complete in under 5 seconds
+
+## Implementation Notes
+
+**New domain notes:**
+- This is the first astronomy benchmark. The error surface differs from OR-Tools problems.
+- Numerical tolerance matters: candidate and reference will not produce bit-identical results.
+- UTC is the required time reference throughout. Local time must not appear in calculations.
+- Julian Day Numbers must use the Gregorian calendar correction for dates after 1582-10-15.
+
+**Testing strategy:**
+- Use Fixture 4 (May 2024 events) as primary verification since reference values are already known from the astronoby wiki
+- Verify illuminated fraction near 0.0 for new moon fixture and near 1.0 for full moon fixture
+- Edge cases: month boundaries, southern hemisphere dates (phase fractions identical, illumination direction differs)
+
+**UI considerations:**
+- Display Moon phase as both numeric fraction and named phase
+- Show illuminated fraction as percentage
+- Display phase events for the month in chronological list
+- Simple Moon phase icon or indicator if feasible
+- Compare candidate vs astronoby values side by side with difference highlighted
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved reference:** astronoby gem with de421.bsp ephemeris
+**Approved candidate algorithm:** Jean Meeus "Astronomical Algorithms" Chapter 48/49
+**Ephemeris dependency:** de421.bsp (17 MB, one-time download to tmp/, gitignored)
+**README update required:** Yes - document ephemeris download step in setup instructions
+**PI approval:** 2026-04-22

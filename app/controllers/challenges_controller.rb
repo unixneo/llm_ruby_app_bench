@@ -24,6 +24,12 @@ class ChallengesController < ApplicationController
       algorithm_count: @job_shop_challenge ? Attempt.where(challenge: @job_shop_challenge).distinct.count(:algorithm_version) : 0,
       attempt_count: @job_shop_challenge ? Attempt.where(challenge: @job_shop_challenge).count : 0
     }
+    @moon_phase_challenge = Challenge.find_by(name: "Moon Phase Calculations")
+    @moon_phase_stats = {
+      fixture_count: MoonPhaseFixtures.all.count,
+      algorithm_count: @moon_phase_challenge ? Attempt.where(challenge: @moon_phase_challenge).distinct.count(:algorithm_version) : 0,
+      attempt_count: @moon_phase_challenge ? Attempt.where(challenge: @moon_phase_challenge).count : 0
+    }
     @max_flow_challenge = Challenge.find_by(name: "Max Flow Problem")
     @max_flow_stats = {
       fixture_count: MaxFlowFixtures.all.count,
@@ -53,6 +59,8 @@ class ChallengesController < ApplicationController
       redirect_to assignment_attempts_path
     elsif challenge.name == "Job Shop Scheduling Problem"
       redirect_to job_shop_attempts_path
+    elsif challenge.name == "Moon Phase Calculations"
+      redirect_to moon_phase_attempts_path
     elsif challenge.name == "Minimum Cost Flow Problem"
       redirect_to min_cost_flow_attempts_path
     elsif challenge.name == "Max Flow Problem"

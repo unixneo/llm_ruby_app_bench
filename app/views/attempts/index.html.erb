@@ -3,6 +3,7 @@
 when "Vehicle Routing Problem" then "VRP Attempts"
 when "Assignment Problem" then "Assignment Attempts"
 when "Job Shop Scheduling Problem" then "Job Shop Attempts"
+when "Moon Phase Calculations" then "Moon Phase Attempts"
 when "Minimum Cost Flow Problem" then "Min Cost Flow Attempts"
 when "Max Flow Problem" then "Max Flow Attempts"
 else "TSP Attempts"
@@ -11,6 +12,7 @@ end %>
 when "Vehicle Routing Problem" then vrp_attempts_path
 when "Assignment Problem" then assignment_attempts_path
 when "Job Shop Scheduling Problem" then job_shop_attempts_path
+when "Moon Phase Calculations" then moon_phase_attempts_path
 when "Minimum Cost Flow Problem" then min_cost_flow_attempts_path
 when "Max Flow Problem" then max_flow_attempts_path
 else attempts_path
@@ -21,7 +23,7 @@ end %>
 <div class="page-header">
   <div>
     <h1 class="page-title"><%= page_title %></h1>
-    <p class="page-subtitle">Codex Ruby candidate results compared with OR-Tools gem references.</p>
+    <p class="page-subtitle">Codex Ruby candidate results compared with mature Ruby gem references.</p>
   </div>
   <%= link_to "Back to algorithms", root_path, class: "btn btn-secondary" %>
 </div>
@@ -30,12 +32,12 @@ end %>
   <section class="card problem-overview-card">
     <div class="card-header">
       <h2 class="card-title">Problem Profile</h2>
-      <span class="badge badge-reference">Operations Research</span>
+      <span class="badge badge-reference"><%= profile.fetch(:domain, "Benchmark") %></span>
     </div>
 
     <div class="problem-profile">
       <p><strong>Complexity:</strong> <%= profile.fetch(:complexity) %></p>
-      <p><strong>OR relevance:</strong> <%= profile.fetch(:relevance) %></p>
+      <p><strong>Research relevance:</strong> <%= profile.fetch(:relevance) %></p>
     </div>
   </section>
 <% end %>
@@ -61,7 +63,7 @@ end %>
       <article class="attempt-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt))))) %></h2>
+            <h2 class="card-title"><%= link_to attempt.fixture_name, attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :moon_phase ? moon_phase_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt)))))) %></h2>
             <p class="muted-line"><%= attempt.prompt_id %> · <%= attempt.challenge.name %> · <%= attempt.algorithm_version %> · <%= attempt.reference_version %></p>
           </div>
           <span class="badge <%= attempt.status_badge_class %>"><%= attempt.status_label %></span>
@@ -90,7 +92,7 @@ end %>
           </div>
         </div>
 
-        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt))))), class: "btn btn-primary" %>
+        <%= link_to "Review comparison", attempt.route_path_name == :vrp ? vrp_attempt_path(attempt) : (attempt.route_path_name == :assignment ? assignment_attempt_path(attempt) : (attempt.route_path_name == :job_shop ? job_shop_attempt_path(attempt) : (attempt.route_path_name == :moon_phase ? moon_phase_attempt_path(attempt) : (attempt.route_path_name == :min_cost_flow ? min_cost_flow_attempt_path(attempt) : (attempt.route_path_name == :max_flow ? max_flow_attempt_path(attempt) : attempt_path(attempt)))))), class: "btn btn-primary" %>
       </article>
     <% end %>
   </section>

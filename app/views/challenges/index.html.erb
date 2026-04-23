@@ -148,6 +148,37 @@
   <article class="algorithm-card">
     <div class="card-header">
       <div>
+        <h2 class="card-title">Moon Phase Calculations</h2>
+        <p class="muted-line">Meeus-style native Ruby phase calculations compared with astronoby references for daily fractions and monthly phase events.</p>
+      </div>
+      <span class="badge badge-pass">Active</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-row">
+        <div class="metric-label">Fixtures</div>
+        <div class="metric-value"><%= pluralize(@moon_phase_stats.fetch(:fixture_count), "fixture") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Algorithms</div>
+        <div class="metric-value"><%= pluralize(@moon_phase_stats.fetch(:algorithm_count), "algorithm") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value"><%= pluralize(@moon_phase_stats.fetch(:attempt_count), "attempt") %></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Status</div>
+        <div class="metric-value">Active</div>
+      </div>
+    </div>
+
+    <%= link_to "View Attempts", @moon_phase_challenge ? challenge_path(@moon_phase_challenge) : moon_phase_attempts_path, class: "btn btn-primary" %>
+  </article>
+
+  <article class="algorithm-card">
+    <div class="card-header">
+      <div>
         <h2 class="card-title">Max Flow Problem</h2>
         <p class="muted-line">Exact Edmonds-Karp candidate flows compared with OR-Tools SimpleMaxFlow references.</p>
       </div>

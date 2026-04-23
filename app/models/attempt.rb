@@ -83,6 +83,8 @@ class Attempt < ApplicationRecord
       AssignmentProblem.find_by(name: fixture_name)
     elsif challenge.name == "Job Shop Scheduling Problem"
       JobShopProblem.find_by(name: fixture_name)
+    elsif challenge.name == "Moon Phase Calculations"
+      MoonPhaseProblem.find_by(name: fixture_name)
     elsif challenge.name == "Minimum Cost Flow Problem"
       MinCostFlowProblem.find_by(name: fixture_name)
     elsif challenge.name == "Max Flow Problem"
@@ -102,6 +104,8 @@ class Attempt < ApplicationRecord
       "Cost Difference"
     when "Job Shop Scheduling Problem"
       "Makespan Difference"
+    when "Moon Phase Calculations"
+      moon_phase_difference_label
     when "Max Flow Problem"
       "Flow Difference"
     else
@@ -117,6 +121,8 @@ class Attempt < ApplicationRecord
       "Candidate Assignment"
     when "Job Shop Scheduling Problem"
       "Candidate Schedule"
+    when "Moon Phase Calculations"
+      "Candidate Result"
     when "Minimum Cost Flow Problem"
       "Candidate Flow"
     when "Max Flow Problem"
@@ -134,6 +140,8 @@ class Attempt < ApplicationRecord
       "Reference Assignment"
     when "Job Shop Scheduling Problem"
       "Reference Schedule"
+    when "Moon Phase Calculations"
+      "Reference Result"
     when "Minimum Cost Flow Problem"
       "Reference Flow"
     when "Max Flow Problem"
@@ -155,6 +163,8 @@ class Attempt < ApplicationRecord
       :assignment
     when "Job Shop Scheduling Problem"
       :job_shop
+    when "Moon Phase Calculations"
+      :moon_phase
     when "Minimum Cost Flow Problem"
       :min_cost_flow
     when "Max Flow Problem"
@@ -184,6 +194,20 @@ class Attempt < ApplicationRecord
       end.join(" | ")
     end
 
+    if result_data.key?("major_events") && result_data.fetch("major_events").any?
+      return result_data.fetch("major_events").map do |event|
+        "#{event.fetch("phase")}: #{event.fetch("time")}"
+      end.join(" | ")
+    end
+
+    if result_data.key?("phase_name")
+      return [
+        "phase=#{result_data.fetch("phase_name")}",
+        "fraction=#{result_data.fetch("phase_fraction", "n/a")}",
+        "illum=#{result_data.fetch("illuminated_fraction", "n/a")}"
+      ].join(" | ")
+    end
+
     if result_data.key?("scheduled_tasks")
       return result_data.fetch("scheduled_tasks").map do |task|
         "J#{task.fetch("job_id")}T#{task.fetch("task_id")} M#{task.fetch("machine_id")} @ #{task.fetch("start_time")}-#{task.fetch("end_time")}"
@@ -210,5 +234,15 @@ class Attempt < ApplicationRecord
     return tour.inspect unless city_names
 
     tour.map { |city_index| city_names.fetch(city_index) }.join(" -> ")
+  end
+
+  def moon_phase_difference_label
+    fixture_type = candidate_result_data["fixture_type"] || reference_result_data["fixture_type"] || fixture&.fixture_type
+
+    if fixture_type == "events"
+      "Max Event Offset (minutes)"
+    else
+      "Max Fraction Difference"
+    end
   end
 end
