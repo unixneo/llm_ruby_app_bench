@@ -2,12 +2,12 @@ cff-version: 1.2.0
 message: "If you use this software or research artifact, please cite it using the metadata below."
 title: "LLM Ruby Algorithm Error Benchmark"
 type: software
-version: "v0.1.2"
-date-released: "2026-04-20"
+version: "v0.1.3"
+date-released: "2026-04-23"
 authors:
   - family-names: "Bass"
     given-names: "Tim"
-abstract: "A Ruby on Rails research artifact for studying human-in-the-loop governance in LLM-assisted algorithm implementation. The repository preserves prompt, result, error, correction, solver, fixture, and verification records across Traveling Salesman, Vehicle Routing, Assignment, and Max Flow implementations."
+abstract: "A Ruby on Rails research artifact for studying human-in-the-loop governance in LLM-assisted algorithm implementation. The repository preserves prompt, result, error, correction, solver, fixture, and verification records across 28 prompts and nine algorithm families: Traveling Salesman, Vehicle Routing, Assignment, Max Flow, Min Cost Flow, Job Shop Scheduling, Moon Phase Calculations, N-Queens, and SAT solving."
 keywords:
   - "large language models"
   - "coding agents"
