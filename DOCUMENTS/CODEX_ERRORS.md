@@ -570,3 +570,75 @@ When updating `PROMPTS.md`, `RESULTS.md`, or error ledgers:
 - verify the new entry number
 - verify surrounding entries remain in order
 - treat the ledger like a journal index, not a scratchpad
+
+---
+
+## CE0013 - Failed Immediate Compliance With Newly Created C009 Commit-Trailer Rule
+
+**Date:** 2026-04-23  
+**Prompt:** Governance follow-up after adding `C009`  
+**Severity:** Medium (process compliance failure undermining new correction credibility)
+
+### Error Description
+
+Codex created `C009` in `DOCUMENTS/CORRECTIONS.md`, defining mandatory commit trailers:
+
+- `Agent: codex|claude|human`
+- `Session: <id>`
+- `Role: architect|coder|pi`
+
+Immediately afterward, Codex made the next repository commit without any of those trailers.
+
+The non-compliant commit was:
+
+```text
+2dba99d Add C009 commit attribution correction and update governance counts
+```
+
+Its body was empty. The commit did not include `Agent`, `Session`, or `Role`.
+
+### Root Cause
+
+Codex treated `C009` as documentation to be written, not as an active rule to be operationalized before the next `git commit`.
+
+This was a straightforward execution failure:
+
+- the rule was clear
+- the next action was within scope of the rule
+- Codex did not pause to adapt its commit workflow before committing
+
+### Why This Is a Codex Error
+
+This is not a missing-specification problem and not a PI ambiguity problem.
+
+The repository now has explicit evidence that Codex can:
+
+- identify a governance gap
+- write a correction for that gap
+- still fail to follow the correction on the very next step
+
+That is a direct compliance failure against an active process rule.
+
+### Impact
+
+- `C009` was weakened immediately by non-compliant execution
+- commit attribution remained ambiguous for the first commit made after the correction
+- the project gained another example showing that prose policy alone does not enforce behavior
+
+### Fix Applied
+
+The repository was updated to add an actual enforcement path:
+
+- a versioned commit template containing `Agent`, `Session`, and `Role`
+- a versioned `commit-msg` hook that rejects commits missing those trailers
+- local Git configuration pointing `commit.template` and `core.hooksPath` at those files
+
+### Lesson
+
+If a correction governs a mechanical action, Codex must operationalize the workflow before performing the next instance of that action.
+
+For commit-policy corrections specifically:
+
+- create the template or hook first
+- verify the local config is active
+- only then make the next commit
