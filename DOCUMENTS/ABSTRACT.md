@@ -1,4 +1,6 @@
-# Abstract
+# When LLMs Pass Tests but Fail the Process: A Traceability Framework for AI-Assisted Software Quality
+
+## Abstract
 
 This paper investigates LLM-assisted software development as a governance problem, not merely a code-generation problem. The study does not argue that LLMs cannot code, nor that coding agents will replace human developers. Instead, it examines how LLM architects and coding agents can produce runnable, tested software while silently shifting architectural authority, validation responsibility, and research accountability away from the human principal investigator (PI).
 
