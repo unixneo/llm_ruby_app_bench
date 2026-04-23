@@ -344,7 +344,6 @@ Commit history currently uses a shared Git author identity (`unixneo`) for human
 All commits must include these trailers in the commit message body:
 
 - `Agent: codex|claude|human`
-- `Session: <id>`
 - `Role: architect|coder|pi`
 
 Example:
@@ -353,22 +352,20 @@ Example:
 Update prompt archive split and results numbering
 
 Agent: codex
-Session: 019daf32-6883-7b42-a061-df8acc86da42
 Role: coder
 ```
 
 **Rules:**
 
 1. `Agent` must identify who performed the work.
-2. `Session` must be the active runtime/session identifier for that actor.
-3. `Role` must match the responsibility of that change (`architect`, `coder`, or `pi`).
-4. If a commit contains mixed authorship, split into separate commits per actor.
-5. Commits missing any trailer are non-compliant.
+2. `Role` must match the responsibility of that change (`architect`, `coder`, or `pi`).
+3. If a commit contains mixed authorship, split into separate commits per actor.
+4. Commits missing any trailer are non-compliant.
 
 **Enforcement:**
 
-- Local: use a commit template that includes the three trailer lines.
-- CI/review: reject commits to `main` that do not include all three trailers.
+- Local: use a commit template that includes the required trailer lines.
+- CI/review: reject commits to `main` that do not include both required trailers.
 - Documentation: when citing a commit in `RESULTS.md` or error logs, use trailer metadata as the source of actor attribution.
 
 **Scope:**

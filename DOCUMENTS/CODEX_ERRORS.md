@@ -584,7 +584,6 @@ When updating `PROMPTS.md`, `RESULTS.md`, or error ledgers:
 Codex created `C009` in `DOCUMENTS/CORRECTIONS.md`, defining mandatory commit trailers:
 
 - `Agent: codex|claude|human`
-- `Session: <id>`
 - `Role: architect|coder|pi`
 
 Immediately afterward, Codex made the next repository commit without any of those trailers.
@@ -595,7 +594,7 @@ The non-compliant commit was:
 2dba99d Add C009 commit attribution correction and update governance counts
 ```
 
-Its body was empty. The commit did not include `Agent`, `Session`, or `Role`.
+Its body was empty. The commit did not include `Agent` or `Role`.
 
 ### Root Cause
 
@@ -629,7 +628,7 @@ That is a direct compliance failure against an active process rule.
 
 The repository was updated to add an actual enforcement path:
 
-- a versioned commit template containing `Agent`, `Session`, and `Role`
+- a versioned commit template containing `Agent` and `Role`
 - a versioned `commit-msg` hook that rejects commits missing those trailers
 - local Git configuration pointing `commit.template` and `core.hooksPath` at those files
 

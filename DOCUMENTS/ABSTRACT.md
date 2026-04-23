@@ -65,7 +65,7 @@ The project maintains nine active correction protocols:
 - **C006:** New session initialization protocol (read required files first)
 - **C007:** Completeness verification (when asked for "all", verify and state count)
 - **C008:** Mandatory UI verification for UI-affecting changes
-- **C009:** Commit attribution trailers required (`Agent`, `Session`, `Role`) for traceability
+- **C009:** Commit attribution trailers required (`Agent`, `Role`) for traceability
 
 These corrections form a persistent artifact ledger alongside PROMPTS.md, RESULTS.md, CLAUDE_ERRORS.md (17 errors, CLE0001-CLE0017), and CODEX_ERRORS.md (10 errors, CE0001-CE0010). Current test suite: 168 tests, 1263 assertions, 0 failures.
 

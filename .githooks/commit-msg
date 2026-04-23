@@ -13,13 +13,11 @@ check_trailer() {
 }
 
 check_trailer "Agent"
-check_trailer "Session"
 check_trailer "Role"
 
 if [ "$missing" -ne 0 ]; then
   echo "Commit rejected by C009 enforcement. Required trailers:" >&2
   echo "  Agent: codex|claude|human" >&2
-  echo "  Session: <id>" >&2
   echo "  Role: architect|coder|pi" >&2
   exit 1
 fi

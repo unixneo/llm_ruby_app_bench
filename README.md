@@ -444,7 +444,7 @@ When asked for "all" or "complete list", verify count explicitly, never present 
 Any change touching views, routes, controllers, CSS, or user-visible layout requires browser/server verification and reporting.
 
 **C009 - Commit Attribution Trailers Required:**
-All commits must include `Agent`, `Session`, and `Role` trailers for actor traceability.
+All commits must include `Agent` and `Role` trailers for actor traceability.
 
 ## Experimental Methodology
 
