@@ -6,12 +6,12 @@ The core claim is that organizations using LLMs or coding agents require human-i
 
 ## Experimental Design
 
-The case study uses a Ruby on Rails application with SQLite3 to evaluate LLM collaboration across a systematic series of algorithm implementation prompts. The three-role architecture assigns the PI (human) as research authority, Claude (Architect) as prompt designer, and Codex (Coder) as implementer. Twenty-eight numbered prompts have been completed across eight algorithm families:
+The case study uses a Ruby on Rails application with SQLite3 to evaluate LLM collaboration across a systematic series of algorithm implementation prompts. The three-role architecture assigns the PI (human) as research authority, Claude (Architect) as prompt designer, and Codex (Coder) as implementer. Twenty-eight numbered prompts have been completed across nine algorithm families:
 
 - **Operations Research (OR-Tools):** TSP (P0001-P0019), VRP (P0020), Assignment Problem (P0021), Max Flow (P0022), Min Cost Flow (P0023), Job Shop Scheduling (P0024)
 - **Astronomy:** Moon Phase Calculations (P0025-P0026, two algorithm versions)
 - **Combinatorics:** N-Queens Problem (P0027, PI-authored reference gem)
-- **Boolean Reasoning:** SAT Solver (P0028, in progress)
+- **Boolean Reasoning:** SAT Solver (P0028, completed)
 
 The application records numbered prompts, implementation results, solver outputs, reference outputs, status classifications, PI interpretations, algorithm versions, and correction records. Role-specific error logs for the Architect (Claude) and Coder (Codex) allow failures to be attributed to prompt design, implementation, verification, architecture, or process governance. The project is publicly available at https://github.com/unixneo/llm_ruby_app_bench with a Zenodo DOI for reproducibility.
 
@@ -42,6 +42,7 @@ After corrections C001-C008 were established, consecutive implementations procee
 - **Job Shop Scheduling (P0024):** Exact branch-and-bound, all 5 fixtures matched OR-Tools CP-SAT
 - **Moon Phase (P0025-P0026):** Two algorithm versions; meeus-full-corrections-v1 eliminated systematic event-time drift
 - **N-Queens (P0027):** Backtracking candidate matched PI-authored gem reference on all 5 fixtures exactly
+- **SAT (P0028):** DPLL candidate matched ravensat reference on all 5 fixtures exactly
 
 Contrast with early TSP (P0001-P0019) which accumulated 17 total errors before corrections stabilized. The framework works across NP-hard heuristics, exact polynomial algorithms, numerical scientific computing, and combinatorial search.
 
@@ -65,7 +66,7 @@ The project maintains eight active correction protocols:
 - **C007:** Completeness verification (when asked for "all", verify and state count)
 - **C008:** Mandatory UI verification for UI-affecting changes
 
-These corrections form a persistent artifact ledger alongside PROMPTS.md, RESULTS.md, CLAUDE_ERRORS.md (17 errors, CLE0001-CLE0017), and CODEX_ERRORS.md (10 errors, CE0001-CE0010). Current test suite: 151 tests, 1202 assertions, 0 failures.
+These corrections form a persistent artifact ledger alongside PROMPTS.md, RESULTS.md, CLAUDE_ERRORS.md (17 errors, CLE0001-CLE0017), and CODEX_ERRORS.md (10 errors, CE0001-CE0010). Current test suite: 168 tests, 1263 assertions, 0 failures.
 
 
 ## Related Work
@@ -157,15 +158,15 @@ LLM agents; AI-assisted software engineering; coding agents; human-in-the-loop g
 
 ## Working Status
 
-This document reflects the state of the project at P0028 (SAT Solver, in progress).
+This document reflects the state of the project at P0028 (SAT Solver, completed).
 
 **Current metrics:**
-- 28 prompts completed (P0001-P0028, with P0028 in progress)
-- 8 algorithm families implemented
+- 28 prompts completed (P0001-P0028)
+- 9 algorithm families implemented
 - 17 Claude/Architect errors documented (CLE0001-CLE0017)
 - 10 Codex/Coder errors documented (CE0001-CE0010)
 - 8 active governance corrections (C001-C008)
-- 151 tests, 1202 assertions, 0 failures
+- 168 tests, 1263 assertions, 0 failures
 - PI-authored reference gem published: `n_queens` v1.0.0 (https://rubygems.org/gems/n_queens)
 - Public repository: https://github.com/unixneo/llm_ruby_app_bench
 - Zenodo DOI: https://doi.org/10.5281/zenodo.19650593

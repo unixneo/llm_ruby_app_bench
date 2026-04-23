@@ -206,7 +206,7 @@ bundle exec ruby -e 'require "astronoby"; Astronoby::Ephem.download(name: "de421
 bin/rails db:migrate
 bin/rails db:seed
 
-# Run tests (full suite ~54 seconds)
+# Run tests (full suite ~59 seconds)
 bin/rails test
 
 # Single-worker skip-flag run used in sandbox verification
