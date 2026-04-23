@@ -41,6 +41,12 @@ module ApplicationHelper
         complexity: "NP-complete decision variant; exact counting requires exhaustive search with pruning.",
         relevance: "Models exact combinatorial search, constraint pruning quality, and correctness-sensitive counting."
       }
+    when "SAT Solver (Boolean Satisfiability)"
+      {
+        domain: "Boolean Logic",
+        complexity: "NP-complete decision problem solved exactly by exponential-time backtracking in worst case.",
+        relevance: "Models logical satisfiability, symbolic reasoning correctness, and exact search behavior under constraints."
+      }
     when "Minimum Cost Flow Problem"
       {
         domain: "Operations Research",

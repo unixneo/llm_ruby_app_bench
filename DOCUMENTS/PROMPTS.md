@@ -1906,3 +1906,294 @@ All three must agree exactly. This is an exact combinatorial benchmark with no t
 **Approved candidate algorithm:** Backtracking with pruning (column + diagonal boolean arrays)
 **Ground truth:** NQueens::KNOWN_COUNTS (OEIS A000170)
 **PI approval:** 2026-04-23
+
+---
+
+# P0028: SAT Solver (Boolean Satisfiability)
+
+**Date:** 2026-04-23
+**Status:** Ready for implementation
+**Architect:** Claude
+**Reference gem:** `ravensat` v1.1.1
+
+## C005 Compliance: gem verification
+
+**Gem:** `ravensat` v1.1.1
+**Source:** https://github.com/matsuda0528/ravensat
+**Verified by:** Codex in RUBYGEMS_NP_COMPLETE_SURVEY.md
+
+**Verified API:**
+```ruby
+require "ravensat"
+
+a = Ravensat::VarNode.new
+b = Ravensat::VarNode.new
+
+# Build CNF formula using operators
+formula = (a | b) & (~a | b) & (a | ~b)
+
+# Solve
+result = Ravensat::Solver.new.solve(formula)
+# result => true (satisfiable) or false (unsatisfiable)
+
+# Read variable assignments after solve
+a.result  # => true or false
+b.result  # => true or false
+```
+
+**Add to Gemfile:**
+```ruby
+gem "ravensat", "~> 1.1"
+```
+
+
+## Problem Statement
+
+Implement a native Ruby SAT solver and compare against the `ravensat` gem reference.
+
+**Problem definition:**
+- Input: A Boolean formula in Conjunctive Normal Form (CNF)
+- CNF: A conjunction (AND) of clauses, each clause is a disjunction (OR) of literals
+- A literal is a variable or its negation
+- Goal: Determine whether the formula is satisfiable (SAT) or unsatisfiable (UNSAT)
+- If SAT: return a satisfying variable assignment
+- Output: Boolean satisfiability result and variable assignments if SAT
+
+**Complexity:** NP-complete
+
+## CNF Representation
+
+Fixtures use DIMACS-style CNF format internally:
+
+```ruby
+# Variables are positive integers: 1, 2, 3, ...
+# A literal is positive (var) or negative (-var, meaning NOT var)
+# A clause is an array of literals
+# A formula is an array of clauses
+
+# Example: (x1 OR x2) AND (NOT x1 OR x2) AND (x1 OR NOT x2)
+# Satisfying assignment: x1=true, x2=true
+formula = [[1, 2], [-1, 2], [1, -2]]
+num_vars = 2
+```
+
+## Algorithm: DPLL (Davis-Putnam-Logemann-Loveland)
+
+**Overview:**
+DPLL is a complete, backtracking-based search algorithm for SAT. It recursively
+assigns truth values to variables, simplifying the formula at each step using
+unit propagation and pure literal elimination.
+
+**Key concepts:**
+- **Unit clause:** A clause with exactly one unassigned literal - must be assigned true
+- **Unit propagation:** Assign all unit clauses and propagate consequences
+- **Pure literal:** A variable appearing only positively or only negatively - can be assigned freely
+- **Pure literal elimination:** Assign all pure literals their satisfying value
+- **Backtracking:** If a conflict is reached, undo last assignment and try opposite value
+
+
+**Algorithm steps:**
+
+1. **Unit propagation:** Find all unit clauses (single unassigned literal). Assign
+   each unit literal true. Remove satisfied clauses. Remove false literals from
+   remaining clauses. Repeat until no unit clauses remain or conflict found.
+
+2. **Pure literal elimination:** Find variables appearing only positively or only
+   negatively across all remaining clauses. Assign them the satisfying value.
+   Remove all clauses containing that literal.
+
+3. **Check termination:**
+   - If no clauses remain: return SAT with current assignment
+   - If any empty clause exists: return UNSAT (conflict), backtrack
+
+4. **Branch:** Choose an unassigned variable. Try assigning true, recurse.
+   If UNSAT returned, try assigning false, recurse.
+   If both UNSAT, return UNSAT to parent.
+
+**Reference materials:**
+- Davis, M., Logemann, G., Loveland, D. "A Machine Program for Theorem Proving" (1962)
+- Wikipedia "DPLL algorithm"
+
+## Test Fixtures
+
+Create five SAT fixtures. Each fixture specifies num_vars, clauses, and
+whether the formula is satisfiable.
+
+### Fixture 1: sat_trivial_sat_2
+```ruby
+{
+  name: "sat_trivial_sat_2",
+  num_vars: 2,
+  clauses: [[1, 2], [-1, 2], [1, -2]],
+  satisfiable: true,
+  description: "Simple 2-variable SAT - manually verifiable (x1=true, x2=true satisfies)"
+}
+```
+
+### Fixture 2: sat_trivial_unsat_2
+```ruby
+{
+  name: "sat_trivial_unsat_2",
+  num_vars: 1,
+  clauses: [[1], [-1]],
+  satisfiable: false,
+  description: "Trivially UNSAT - x must be both true and false"
+}
+```
+
+
+### Fixture 3: sat_3sat_small_sat
+```ruby
+{
+  name: "sat_3sat_small_sat",
+  num_vars: 4,
+  clauses: [[1, 2, 3], [-1, 2, 4], [1, -2, -3], [-1, -2, 4], [2, 3, -4]],
+  satisfiable: true,
+  description: "Small 3-SAT instance with 4 variables and 5 clauses - SAT"
+}
+```
+
+### Fixture 4: sat_3sat_unsat
+```ruby
+{
+  name: "sat_3sat_unsat",
+  num_vars: 3,
+  clauses: [
+    [1, 2, 3], [1, 2, -3], [1, -2, 3], [1, -2, -3],
+    [-1, 2, 3], [-1, 2, -3], [-1, -2, 3], [-1, -2, -3]
+  ],
+  satisfiable: false,
+  description: "All 8 clauses of 3 variables - UNSAT (exhausts all assignments)"
+}
+```
+
+### Fixture 5: sat_3sat_medium_sat
+```ruby
+{
+  name: "sat_3sat_medium_sat",
+  num_vars: 6,
+  clauses: [
+    [1, 2, 3], [-1, 4, 5], [2, -3, 6], [-2, 3, -4],
+    [1, -5, 6], [-1, -2, -6], [3, 4, -5], [-3, -4, 5]
+  ],
+  satisfiable: true,
+  description: "Medium 3-SAT with 6 variables and 8 clauses - SAT"
+}
+```
+
+## Reference Implementation
+
+Use `ravensat` gem. Codex must translate the DIMACS clause array format
+into ravensat VarNode operators before solving.
+
+```ruby
+require "ravensat"
+
+def solve_with_ravensat(num_vars, clauses)
+  vars = (1..num_vars).map { Ravensat::VarNode.new }
+
+  formula = clauses.map do |clause|
+    clause.map { |lit| lit > 0 ? vars[lit - 1] : ~vars[-lit - 1] }
+          .reduce(:|)
+  end.reduce(:&)
+
+  result = Ravensat::Solver.new.solve(formula)
+  assignments = result ? vars.each_with_index.map { |v, i| [i + 1, v.result] }.to_h : nil
+  { satisfiable: result, assignments: assignments }
+end
+```
+
+
+## Candidate Implementation
+
+Create `SatSolver` class implementing DPLL:
+
+**Required methods:**
+- initialize: accepts num_vars (Integer) and clauses (Array of Arrays of Integers)
+- solve: returns hash with :satisfiable (Boolean) and :assignments (Hash or nil)
+  - :satisfiable is true or false
+  - :assignments is Hash mapping variable Integer to Boolean when SAT, nil when UNSAT
+- valid_assignment?(assignments, clauses): returns true if assignments satisfy all clauses
+
+**Class must not require or call the `ravensat` gem.**
+
+**Internal representation:**
+- Variables: positive integers 1..num_vars
+- Literals: positive integer (true) or negative integer (negated)
+- Clauses: Array of Integer arrays
+- Assignment: Hash of Integer => Boolean
+
+## Validation Requirements
+
+For each fixture:
+
+1. **SAT agreement:** candidate satisfiable result matches ravensat result exactly
+2. **Assignment validity** (SAT cases): candidate assignment satisfies every clause
+3. **UNSAT confirmation:** when both agree UNSAT, no valid assignment exists
+4. **No false SAT claims:** candidate must not return SAT with an invalid assignment
+
+## Comparison Metrics
+
+**Primary metric:** candidate satisfiable result vs ravensat result (must agree exactly)
+
+**Secondary metrics:**
+- Assignment validity for SAT fixtures
+- Number of DPLL decisions made (search effort)
+
+**Expected LLM failure modes:**
+- Incorrect clause evaluation (off-by-one on literal index)
+- Incorrect unit propagation (missing cascading units)
+- Returning SAT with assignment that does not satisfy all clauses
+- Infinite loop from missing backtracking
+- Confusing variable index 1-based vs 0-based
+
+## Success Criteria
+
+1. ✅ **All 5 fixtures agree** - candidate satisfiability matches ravensat exactly
+2. ✅ **All SAT assignments valid** - every returned assignment satisfies all clauses
+3. ✅ **DPLL implemented** - unit propagation, pure literal elimination, backtracking
+4. ✅ **Tests pass** - all unit tests green
+5. ✅ **Performance acceptable** - all fixtures solve in under 5 seconds
+
+
+## Implementation Notes
+
+**New domain notes:**
+- This is the first Boolean reasoning benchmark. The error surface differs
+  completely from OR-Tools, astronoby, and n_queens.
+- Validation is exact: an assignment either satisfies every clause or it does not.
+- UNSAT proofs require exhaustive search - DPLL must explore all branches.
+- Variable indexing is 1-based in DIMACS format. Careful array indexing required.
+
+**Fixtures class:** Create `SatFixtures` class, call from `seeds.rb` as
+`SatFixtures.seed!` and `SatAttemptRunner.new.run_all`
+
+**Do not write fixture data directly into seeds.rb.**
+
+**Model:** Create `SatProblem` Active Record model with columns:
+- name (string)
+- num_vars (integer)
+- clauses (text, stored as JSON)
+- satisfiable (boolean)
+- description (string)
+
+**Testing strategy:**
+- Fixture 2 (trivially UNSAT) verifies UNSAT detection immediately
+- Fixture 1 (trivially SAT) verifies basic SAT with manual verification
+- Fixture 4 (all-clauses UNSAT) stress-tests exhaustive search
+- Fixture 5 (medium SAT) tests DPLL search heuristics
+
+**UI considerations:**
+- Display formula size (num_vars, num_clauses)
+- Show SAT or UNSAT result prominently
+- For SAT fixtures, display satisfying assignment as variable truth table
+- Compare candidate result vs ravensat result side by side
+
+---
+
+**Ready for Codex implementation.**
+
+**Approved reference:** `ravensat` gem v1.1.1
+**Approved candidate algorithm:** DPLL with unit propagation and pure literal elimination
+**Validation:** exact satisfiability agreement + assignment validity check
+**PI approval:** 2026-04-23

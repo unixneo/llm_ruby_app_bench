@@ -70,6 +70,12 @@ A human-in-the-loop experimental framework for evaluating large language model (
    - Reference: `n_queens` v1.0.0 (PI-authored)
    - **All 5 fixtures achieved exact count match** (difference 0.0)
 
+9. **SAT Solver (Boolean Satisfiability)** - P0028
+   - Native Ruby DPLL solver (exact SAT/UNSAT classification)
+   - 5 fixtures: trivial SAT/UNSAT and small-to-medium 3-SAT cases
+   - Reference: `ravensat` v1.1.1
+   - **All 5 fixtures achieved exact satisfiability match** (difference 0.0)
+
 **Error Documentation:**
 - 17 Claude/Architect errors (CLE0001-CLE0017)
 - 10 Codex/Coder errors (CE0001-CE0010)
@@ -77,6 +83,8 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 **Recent Major Findings:**
 
+- **P0028 complete:** SAT implementation with native Ruby DPLL candidate and `ravensat-v1.1.1` reference on all 5 fixtures
+- **ravensat API verified locally before implementation:** `VarNode` operators `~`, `|`, `&` and `reduce(:|)/reduce(:&)` translation path confirmed executable
 - **P0027 complete:** N-Queens implementation with native Ruby backtracking candidate and `n_queens-v1.0.0` reference on all 5 fixtures
 - **P0026 complete:** Second Moon Phase algorithm version added; monthly event offsets dropped from ~`1.17` minutes to `0.0`
 - **CLE0017 documented:** P0026 prompt misdiagnosed the prior moon-phase drift; Codex verified the real cause was missing TT-to-UTC conversion, not absent Chapter 49 event terms
@@ -128,7 +136,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SURVEY.md` for complete analysis.
 
-**Progress:** 27 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop + 2 Moon Phase + 1 N-Queens) = 54% of 50-prompt target
+**Progress:** 28 prompts complete (19 TSP + 1 VRP + 1 Assignment + 1 Max Flow + 1 Min Cost Flow + 1 Job Shop + 2 Moon Phase + 1 N-Queens + 1 SAT) = 56% of 50-prompt target
 
 ## Three-Role Architecture
 
@@ -155,22 +163,22 @@ See `DOCUMENTS/ALGORITHM_COMPLEXITY_SURVEY.md` and `DOCUMENTS/PHYSICS_DOMAIN_SUR
 llm_ruby_app_bench/
 ├── DOCUMENTS/
 │   ├── PLAN.md             # Frozen research charter
-│   ├── PROMPTS.md          # Numbered prompts (P0001-P0027)
-│   ├── RESULTS.md          # Implementation results (R0001-R0027)
+│   ├── PROMPTS.md          # Numbered prompts (P0001-P0028)
+│   ├── RESULTS.md          # Implementation results (R0001-R0028)
 │   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0017)
 │   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
 │   ├── CORRECTIONS.md      # Active corrections (C001-C008)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
 │   └── ABSTRACT.md         # Research abstract
 ├── app/
-│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem, MinCostFlowProblem, JobShopProblem, MoonPhaseProblem, NQueensProblem
+│   ├── models/             # Challenge, Attempt, TspProblem, VrpProblem, AssignmentProblem, MaxFlowProblem, MinCostFlowProblem, JobShopProblem, MoonPhaseProblem, NQueensProblem, SatProblem
 │   ├── services/           # Algorithm solvers and runners
 │   ├── controllers/        # Challenges, Attempts controllers
 │   └── views/              # Algorithm index and result comparison UI
 ├── db/
-│   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, Moon Phase, and N-Queens fixtures
+│   ├── seeds.rb            # TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, Moon Phase, N-Queens, and SAT fixtures
 │   └── schema.rb           # SQLite3 schema
-└── test/                   # 151 tests, 1202 assertions
+└── test/                   # 168 tests, 1263 assertions
 ```
 
 ## Setup
@@ -215,13 +223,14 @@ bin/rails server
 ### Viewing Results
 
 The web interface displays:
-- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, Moon Phase, and N-Queens
+- **Algorithm index (`/`):** Project overview and cards for TSP, VRP, Assignment, Max Flow, Min Cost Flow, Job Shop, Moon Phase, N-Queens, and SAT
 - **TSP attempts (`/tsp/attempts`):** All TSP solutions with version comparison
 - **VRP attempts (`/vrp/attempts`):** All VRP solutions with capacity and distance comparison
 - **Assignment attempts (`/assignment/attempts`):** All Assignment solutions with optimal-cost comparison
 - **Job Shop attempts (`/job_shop/attempts`):** All Job Shop schedules with makespan comparison
 - **Moon Phase attempts (`/moon_phase/attempts`):** Daily Moon-fraction and monthly phase-event comparisons against astronoby
 - **N-Queens attempts (`/n_queens/attempts`):** Exact solution-count comparisons against the `n_queens` reference gem
+- **SAT attempts (`/sat/attempts`):** Native DPLL SAT/UNSAT results and assignments compared with `ravensat`
 - **Min Cost Flow attempts (`/min_cost_flow/attempts`):** All Min Cost Flow solutions with demand and cost comparison
 - **Max Flow attempts (`/max_flow/attempts`):** All Max Flow solutions with capacity and conservation validation
 - **Attempt detail:** Side-by-side candidate vs reference comparison
@@ -237,12 +246,12 @@ The web interface displays:
 
 ### Test Runtime
 
-**Full suite (54 seconds):**
+**Full suite (59 seconds):**
 ```bash
 bin/rails test
 ```
 
-**Single-worker skip-flag run (58 seconds, skips 13 Held-Karp tests):**
+**Single-worker skip-flag run (59 seconds, skips 13 Held-Karp tests):**
 ```bash
 PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
 ```
@@ -313,6 +322,13 @@ Note: The single-worker command is the verified sandbox-safe skip-flag run for t
 - `nqueens_10`
 - `nqueens_12`
 
+**SAT Fixtures (5):**
+- `sat_trivial_sat_2`
+- `sat_trivial_unsat_2`
+- `sat_3sat_small_sat`
+- `sat_3sat_unsat`
+- `sat_3sat_medium_sat`
+
 ### Algorithm Versions
 
 **TSP:**
@@ -349,6 +365,10 @@ Note: The single-worker command is the verified sandbox-safe skip-flag run for t
 **N-Queens:**
 - `backtracking-v1` - Native Ruby backtracking with column/diagonal pruning
 - Reference: `n_queens-v1.0.0`
+
+**SAT:**
+- `dpll-v1` - Native Ruby DPLL with unit propagation and pure literal elimination
+- Reference: `ravensat-v1.1.1`
 
 ## Key Findings
 
@@ -448,7 +468,8 @@ Any change touching views, routes, controllers, CSS, or user-visible layout requ
 - **OR-Tools 0.17.1** - Reference solver (Google)
 - **Astronoby 0.9.0** - Astronomy reference solver
 - **n_queens 1.0.0** - N-Queens reference solver (RubyGem)
-- **Minitest** - 151 tests, 1202 assertions
+- **ravensat 1.1.1** - SAT reference solver (RubyGem)
+- **Minitest** - 168 tests, 1263 assertions
 
 ## Future Work
 
@@ -498,7 +519,7 @@ After a Zenodo DOI is minted, cite the archived release DOI rather than only the
 
 ---
 
-**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (2 prompts), N-Queens complete (1 prompt), 17 Claude errors, 10 Codex errors, 8 corrections active
+**Project Status:** Active - TSP complete (19 prompts), VRP complete (1 prompt), Assignment complete (1 prompt), Max Flow complete (1 prompt), Min Cost Flow complete (1 prompt), Job Shop complete (1 prompt), Moon Phase complete (2 prompts), N-Queens complete (1 prompt), SAT complete (1 prompt), 17 Claude errors, 10 Codex errors, 8 corrections active
 
 **Repository:** https://github.com/unixneo/llm_ruby_app_bench
 

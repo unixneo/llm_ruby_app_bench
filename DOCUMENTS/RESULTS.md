@@ -2779,3 +2779,177 @@ Finished in 57.701296s
 ```
 
 No PATH prefix, shell wrapper, or vendor bundle workaround was used.
+
+
+## R0028 - P0028 SAT Solver (Boolean Satisfiability) Implementation
+
+**Date:** 2026-04-23  
+**Codex Status:** Completed with pre-implementation `ravensat` API verification
+
+### Summary
+
+Implemented P0028 as the first Boolean satisfiability benchmark lane.
+
+Implemented:
+
+- `SatProblem` model and migration-backed fixture persistence
+- `SatFixtures` with five deterministic SAT/UNSAT fixtures from P0028
+- `SatSolver` native Ruby DPLL candidate (`dpll-v1`) with:
+  - unit propagation
+  - pure literal elimination
+  - recursive backtracking
+  - assignment validity check (`valid_assignment?`)
+- `GemSatSolver` reference wrapper over `ravensat 1.1.1`
+- `SatSolutionValidator` for SAT/UNSAT payload validation and clause-satisfaction checks
+- `SatResultComparison` for exact satisfiable-flag agreement and status assignment
+- `SatAttemptRunner` to persist `Attempt` rows under prompt `P0028`
+- `/sat/attempts` scoped route integration through the shared attempts UI
+- SAT challenge card on the root algorithm index
+- SAT rendering support in attempts index/detail pages and `Attempt` display helpers
+- focused tests for model, candidate solver, reference solver, validator, comparison, runner, SAT routes, and challenge redirects
+
+### API Verification (C005-style precheck)
+
+The prompt warned about potential translation risk around `reduce(:|)` / `reduce(:&)` on `VarNode`.
+Codex verified this directly before implementation:
+
+```bash
+bundle exec ruby -e 'require "ravensat"; v1=Ravensat::VarNode.new; v2=Ravensat::VarNode.new; puts (v1|v2).class; puts (v1&v2).class; puts (~v1).class'
+```
+
+Observed classes:
+
+```text
+Ravensat::OrNode
+Ravensat::AndNode
+Ravensat::NotNode
+```
+
+Then verified the full translation pattern executes:
+
+```text
+[literal_nodes].reduce(:|) for clause OR
+[clause_nodes].reduce(:&) for formula AND
+Ravensat::Solver.new.solve(formula) => true/false
+```
+
+Result: prompt translation approach is valid for installed `ravensat 1.1.1`.
+
+### Governance Notes
+
+Candidate source/version:
+
+```text
+dpll
+dpll-v1
+```
+
+Reference version:
+
+```text
+ravensat-v1.1.1
+```
+
+This lane keeps exact comparison semantics:
+
+- primary metric is boolean satisfiable agreement
+- SAT assignments are validity-checked against every clause
+- UNSAT fixtures require both candidate and reference to return UNSAT
+
+### Verified Results
+
+After running the SAT attempt runner, five `P0028` attempts were recorded:
+
+```text
+fixture | status | satisfiable difference
+sat_trivial_unsat_2 | exact_match | 0.0
+sat_trivial_sat_2   | exact_match | 0.0
+sat_3sat_unsat      | exact_match | 0.0
+sat_3sat_small_sat  | exact_match | 0.0
+sat_3sat_medium_sat | exact_match | 0.0
+```
+
+Observed candidate/reference behavior:
+
+- all fixtures matched exactly on SAT/UNSAT classification
+- SAT assignments passed clause-satisfaction validation
+- no false SAT claims were accepted
+
+### UI Verification
+
+SAT routing and display behavior were verified through integration tests:
+
+- challenge index includes SAT card and metrics
+- `Challenge#show` redirects SAT challenge to `/sat/attempts`
+- `/sat/attempts` renders SAT-only attempts with SAT profile metadata
+- SAT attempt detail page renders `ravensat` reference badge and scoped PI interpretation route
+
+Direct localhost browser verification is restricted in this sandbox, so UI verification here is test-based.
+
+### Verification
+
+Dependency install:
+
+```bash
+bundle install
+```
+
+Migration:
+
+```bash
+bin/rails db:migrate
+```
+
+Focused SAT slice:
+
+```bash
+bin/rails test test/models/sat_problem_test.rb test/services/sat_solver_test.rb test/services/gem_sat_solver_test.rb test/services/sat_solution_validator_test.rb test/services/sat_result_comparison_test.rb test/services/sat_attempt_runner_test.rb test/controllers/sat_attempts_controller_test.rb
+```
+
+Output:
+
+```text
+15 runs, 55 assertions, 0 failures, 0 errors, 0 skips
+Finished in 0.099965s
+```
+
+Controller integration slice:
+
+```bash
+bin/rails test test/controllers/challenges_controller_test.rb test/controllers/attempts_controller_test.rb
+```
+
+Output:
+
+```text
+27 runs, 185 assertions, 0 failures, 0 errors, 0 skips
+Finished in 0.230377s
+```
+
+Full suite:
+
+```bash
+bin/rails test
+```
+
+Output:
+
+```text
+168 runs, 1263 assertions, 0 failures, 0 errors, 0 skips
+Finished in 58.738952s
+```
+
+Single-worker skip-flag suite:
+
+```bash
+PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
+```
+
+Output:
+
+```text
+168 runs, 1029 assertions, 0 failures, 0 errors, 13 skips
+Finished in 59.185545s
+```
+
+No PATH prefix, shell wrapper, or vendor bundle workaround was used.

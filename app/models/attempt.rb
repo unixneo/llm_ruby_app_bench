@@ -87,6 +87,8 @@ class Attempt < ApplicationRecord
       MoonPhaseProblem.find_by(name: fixture_name)
     elsif challenge.name == "N-Queens Problem"
       NQueensProblem.find_by(name: fixture_name)
+    elsif challenge.name == "SAT Solver (Boolean Satisfiability)"
+      SatProblem.find_by(name: fixture_name)
     elsif challenge.name == "Minimum Cost Flow Problem"
       MinCostFlowProblem.find_by(name: fixture_name)
     elsif challenge.name == "Max Flow Problem"
@@ -110,6 +112,8 @@ class Attempt < ApplicationRecord
       moon_phase_difference_label
     when "N-Queens Problem"
       "Count Difference"
+    when "SAT Solver (Boolean Satisfiability)"
+      "Satisfiable Difference"
     when "Max Flow Problem"
       "Flow Difference"
     else
@@ -128,6 +132,8 @@ class Attempt < ApplicationRecord
     when "Moon Phase Calculations"
       "Candidate Result"
     when "N-Queens Problem"
+      "Candidate Result"
+    when "SAT Solver (Boolean Satisfiability)"
       "Candidate Result"
     when "Minimum Cost Flow Problem"
       "Candidate Flow"
@@ -149,6 +155,8 @@ class Attempt < ApplicationRecord
     when "Moon Phase Calculations"
       "Reference Result"
     when "N-Queens Problem"
+      "Reference Result"
+    when "SAT Solver (Boolean Satisfiability)"
       "Reference Result"
     when "Minimum Cost Flow Problem"
       "Reference Flow"
@@ -175,6 +183,8 @@ class Attempt < ApplicationRecord
       :moon_phase
     when "N-Queens Problem"
       :n_queens
+    when "SAT Solver (Boolean Satisfiability)"
+      :sat
     when "Minimum Cost Flow Problem"
       :min_cost_flow
     when "Max Flow Problem"
@@ -216,6 +226,21 @@ class Attempt < ApplicationRecord
         "count=#{result_data.fetch("count", "n/a")}",
         "method=#{result_data.fetch("method", "n/a")}",
         "duration=#{result_data.fetch("duration", "n/a")}"
+      ].join(" | ")
+    end
+
+    if result_data.key?("satisfiable")
+      assignments = result_data.fetch("assignments", nil)
+      assignments_display = if assignments.is_a?(Hash)
+        assignments.sort_by { |key, _| key.to_i }.map { |key, value| "x#{key}=#{value}" }.join(", ")
+      else
+        "n/a"
+      end
+
+      return [
+        "satisfiable=#{result_data.fetch("satisfiable", "n/a")}",
+        "decisions=#{result_data.fetch("decisions", "n/a")}",
+        "assignments=#{assignments_display}"
       ].join(" | ")
     end
 

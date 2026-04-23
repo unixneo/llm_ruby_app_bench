@@ -5,6 +5,7 @@ when "Assignment Problem" then "Assignment Attempts"
 when "Job Shop Scheduling Problem" then "Job Shop Attempts"
 when "Moon Phase Calculations" then "Moon Phase Attempts"
 when "N-Queens Problem" then "N-Queens Attempts"
+when "SAT Solver (Boolean Satisfiability)" then "SAT Attempts"
 when "Minimum Cost Flow Problem" then "Min Cost Flow Attempts"
 when "Max Flow Problem" then "Max Flow Attempts"
 else "TSP Attempts"
@@ -15,6 +16,7 @@ when "Assignment Problem" then assignment_attempts_path
 when "Job Shop Scheduling Problem" then job_shop_attempts_path
 when "Moon Phase Calculations" then moon_phase_attempts_path
 when "N-Queens Problem" then n_queens_attempts_path
+when "SAT Solver (Boolean Satisfiability)" then sat_attempts_path
 when "Minimum Cost Flow Problem" then min_cost_flow_attempts_path
 when "Max Flow Problem" then max_flow_attempts_path
 else attempts_path
@@ -68,6 +70,7 @@ end %>
       when :job_shop then job_shop_attempt_path(attempt)
       when :moon_phase then moon_phase_attempt_path(attempt)
       when :n_queens then n_queens_attempt_path(attempt)
+      when :sat then sat_attempt_path(attempt)
       when :min_cost_flow then min_cost_flow_attempt_path(attempt)
       when :max_flow then max_flow_attempt_path(attempt)
       else attempt_path(attempt)

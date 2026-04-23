@@ -36,6 +36,12 @@ class ChallengesController < ApplicationController
       algorithm_count: @n_queens_challenge ? Attempt.where(challenge: @n_queens_challenge).distinct.count(:algorithm_version) : 0,
       attempt_count: @n_queens_challenge ? Attempt.where(challenge: @n_queens_challenge).count : 0
     }
+    @sat_challenge = Challenge.find_by(name: "SAT Solver (Boolean Satisfiability)")
+    @sat_stats = {
+      fixture_count: SatFixtures.all.count,
+      algorithm_count: @sat_challenge ? Attempt.where(challenge: @sat_challenge).distinct.count(:algorithm_version) : 0,
+      attempt_count: @sat_challenge ? Attempt.where(challenge: @sat_challenge).count : 0
+    }
     @max_flow_challenge = Challenge.find_by(name: "Max Flow Problem")
     @max_flow_stats = {
       fixture_count: MaxFlowFixtures.all.count,
@@ -69,6 +75,8 @@ class ChallengesController < ApplicationController
       redirect_to moon_phase_attempts_path
     elsif challenge.name == "N-Queens Problem"
       redirect_to n_queens_attempts_path
+    elsif challenge.name == "SAT Solver (Boolean Satisfiability)"
+      redirect_to sat_attempts_path
     elsif challenge.name == "Minimum Cost Flow Problem"
       redirect_to min_cost_flow_attempts_path
     elsif challenge.name == "Max Flow Problem"

@@ -9,6 +9,8 @@ elsif @attempt.route_path_name == :moon_phase
   moon_phase_attempts_path
 elsif @attempt.route_path_name == :n_queens
   n_queens_attempts_path
+elsif @attempt.route_path_name == :sat
+  sat_attempts_path
 elsif @attempt.route_path_name == :min_cost_flow
   min_cost_flow_attempts_path
 elsif @attempt.route_path_name == :max_flow
@@ -26,6 +28,8 @@ elsif @attempt.route_path_name == :moon_phase
   moon_phase_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :n_queens
   n_queens_attempt_interpretations_path(@attempt)
+elsif @attempt.route_path_name == :sat
+  sat_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :min_cost_flow
   min_cost_flow_attempt_interpretations_path(@attempt)
 elsif @attempt.route_path_name == :max_flow
@@ -90,6 +94,12 @@ end %>
 </section>
 
 <section class="comparison-grid">
+  <% reference_badge = case @attempt.challenge.name
+  when "Moon Phase Calculations" then "Astronoby"
+  when "N-Queens Problem" then "n_queens"
+  when "SAT Solver (Boolean Satisfiability)" then "ravensat"
+  else "OR-Tools"
+  end %>
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Candidate Result</h2>
@@ -101,7 +111,7 @@ end %>
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Gem Reference Result</h2>
-      <span class="badge badge-reference"><%= @attempt.challenge.name == "Moon Phase Calculations" ? "Astronoby" : (@attempt.challenge.name == "N-Queens Problem" ? "n_queens" : "OR-Tools") %></span>
+      <span class="badge badge-reference"><%= reference_badge %></span>
     </div>
     <pre class="result-json"><%= JSON.pretty_generate(@attempt.reference_result_data) %></pre>
   </div>

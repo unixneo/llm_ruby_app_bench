@@ -49,6 +49,12 @@ Rails.application.routes.draw do
     end
   end
 
+  scope :sat, as: :sat, defaults: { challenge_name: "SAT Solver (Boolean Satisfiability)" } do
+    resources :attempts, controller: "attempts", only: [:index, :show] do
+      resources :interpretations, only: [:create]
+    end
+  end
+
   scope :min_cost_flow, as: :min_cost_flow, defaults: { challenge_name: "Minimum Cost Flow Problem" } do
     resources :attempts, controller: "attempts", only: [:index, :show] do
       resources :interpretations, only: [:create]

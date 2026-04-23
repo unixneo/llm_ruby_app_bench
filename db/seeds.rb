@@ -9,6 +9,8 @@ MoonPhaseAttemptRunner.new.run_all
 MoonPhaseFullAttemptRunner.new.run_all
 NQueensFixtures.seed!
 NQueensAttemptRunner.new.run_all
+SatFixtures.seed!
+SatAttemptRunner.new.run_all
 MinCostFlowFixtures.seed!
 MinCostFlowAttemptRunner.new.run_all
 MaxFlowFixtures.seed!

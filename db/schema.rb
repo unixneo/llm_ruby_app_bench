@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_23_020000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_23_030000) do
   create_table "assignment_problems", force: :cascade do |t|
     t.string "name", null: false
     t.integer "workers", null: false
@@ -122,6 +122,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_23_020000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["prompt_id"], name: "index_prompts_on_prompt_id", unique: true
+  end
+
+  create_table "sat_problems", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "num_vars", null: false
+    t.text "clauses", null: false
+    t.boolean "satisfiable", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_sat_problems_on_name", unique: true
   end
 
   add_foreign_key "attempts", "challenges"
