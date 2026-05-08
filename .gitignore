@@ -17,6 +17,8 @@ tmp/
 # Dependencies
 node_modules/
 vendor/bundle/
+Gemfile
+Gemfile.lock
 
 # Bundle configuration (CE0009 - use system gems, not vendor bundle)
 .bundle/
