@@ -280,7 +280,7 @@ Could not find puma-8.0.0 ... linked to incompatible
 
 ---
 
-# CE0010: UI Layout Regression After Max Flow Implementation
+## CE0010: UI Layout Regression After Max Flow Implementation
 
 **Date:** 2026-04-18  
 **Prompt:** P0022/R0022 (Max Flow Problem)  

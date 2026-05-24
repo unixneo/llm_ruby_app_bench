@@ -1171,7 +1171,7 @@ Before writing any reference API snippet in a prompt, Architect must verify agai
 
 ---
 
-# CLE0017: P0026 misdiagnosed the source of P0025 moon-phase event drift
+## CLE0017: P0026 misdiagnosed the source of P0025 moon-phase event drift
 
 **Date:** 2026-04-23
 **Prompt:** P0026 (Moon Phase Calculations - Full Meeus Correction Series)

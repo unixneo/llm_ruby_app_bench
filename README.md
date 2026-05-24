@@ -79,7 +79,7 @@ A human-in-the-loop experimental framework for evaluating large language model (
 
 **Error Documentation:**
 - 17 Claude/Architect errors (CLE0001-CLE0017)
-- 10 Codex/Coder errors (CE0001-CE0010)
+- 13 Codex/Coder errors (CE0001-CE0013)
 - 9 active corrections (C001-C009)
 
 **Recent Major Findings:**
@@ -167,7 +167,7 @@ llm_ruby_app_bench/
 │   ├── PROMPTS.md          # Numbered prompts (P0001-P0028)
 │   ├── RESULTS.md          # Implementation results (R0001-R0028)
 │   ├── CLAUDE_ERRORS.md    # Architect errors (CLE0001-CLE0017)
-│   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0010)
+│   ├── CODEX_ERRORS.md     # Coder errors (CE0001-CE0013)
 │   ├── CORRECTIONS.md      # Active corrections (C001-C009)
 │   ├── RUBYGEMS_SURVEY.md  # Algorithm gem verification
 │   └── ABSTRACT.md         # Research abstract
@@ -247,12 +247,12 @@ The web interface displays:
 
 ### Test Runtime
 
-**Full suite (59 seconds):**
+**Full suite (~59 seconds, parallel):**
 ```bash
 bin/rails test
 ```
 
-**Single-worker skip-flag run (59 seconds, skips 13 Held-Karp tests):**
+**Single-worker skip-flag run (~31 seconds, skips 13 Held-Karp tests):**
 ```bash
 PARALLEL_WORKERS=1 SKIP_HELD_KARP=1 bin/rails test
 ```
